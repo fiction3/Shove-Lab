@@ -20,6 +20,8 @@ import ChipRow from "./ChipRow.jsx";
 import RangeViewer from "./RangeViewer.jsx";
 import SessionReview from "./SessionReview.jsx";
 import ICMSetup from "./ICMSetup.jsx";
+import LearnView from "./LearnView.jsx";
+import DrillsView from "./DrillsView.jsx";
 
 // ---------- Styles (kept inline for now, can extract later) ----------
 
@@ -91,9 +93,11 @@ function ModeTabs({ mode, onChange }) {
 
 function ViewTabs({ view, onChange }) {
   return (
-    <div style={{ display: "flex", gap: 4 }}>
+    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
       {[
         { value: "trainer", label: "Trainer" },
+        { value: "learn", label: "Learn" },
+        { value: "drills", label: "Drills" },
         { value: "ranges", label: "Range Viewer" },
         { value: "review", label: "Session Review" },
         { value: "icm", label: "ICM Setup" },
@@ -145,6 +149,19 @@ export default function PushFoldTrainer() {
   const [chosen, setChosen] = useState(null);
   const [stats, setStats] = useState({ correct: 0, total: 0 });
   const [history, setHistory] = useState([]);
+
+  // Drill state (separate history from trainer hands)
+  const [drillHistory, setDrillHistory] = useState([]);
+  const [drillDeepLink, setDrillDeepLink] = useState(null);
+
+  function addDrillHistory(entry) {
+    setDrillHistory(h => [...h, entry]);
+  }
+
+  function jumpToDrill(drillId) {
+    setDrillDeepLink(drillId);
+    setView("drills");
+  }
 
   const code = useMemo(() => handCode(hand[0], hand[1]), [hand]);
 
@@ -298,7 +315,7 @@ export default function PushFoldTrainer() {
         borderBottom: "1px solid rgba(232,227,211,0.15)",
         marginBottom: 24,
       }}>
-        <ViewTabs view={view} onChange={setView}/>
+        <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); }}/>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -573,6 +590,18 @@ export default function PushFoldTrainer() {
             setHistory([]);
             setStats({ correct: 0, total: 0 });
           }}/>
+        )}
+
+        {view === "learn" && (
+          <LearnView onJumpToDrill={jumpToDrill}/>
+        )}
+
+        {view === "drills" && (
+          <DrillsView
+            initialDrill={drillDeepLink}
+            history={drillHistory}
+            addHistory={addDrillHistory}
+          />
         )}
 
         {view === "icm" && (

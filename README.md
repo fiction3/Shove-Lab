@@ -15,6 +15,20 @@ or without coaching, and the session review tracks where you're leaking.
   - **Call** — villain shoves, decide whether to call all-in
   - **Reshove** — villain min-raises, decide whether to jam over (10–25bb)
 
+- **Learn** — 8 foundation lessons covering position, pot odds, required
+  equity, hand-vs-hand equity, outs counting, fold equity, ICM, and how
+  it all comes together in short-stack strategy. Each lesson links to the
+  relevant drill.
+
+- **Drills** — six fast-paced math drills with per-drill accuracy and
+  average-time tracking:
+  - Pot odds (free input)
+  - Required equity (multiple choice)
+  - Hand-vs-hand equity (50+ matchups, multiple choice)
+  - Outs counting + rule-of-4-and-2 application
+  - Fold equity / breakeven calculations
+  - Hand-rankings A/B comparison
+
 - **Tournament stage selector** — Chip EV, Mid (ITM), Bubble, Final Table, or Custom ICM
   - Stage-based heuristic multipliers for quick play
   - **Custom ICM** uses the Malmuth-Harville algorithm with your stacks + payouts
@@ -49,23 +63,36 @@ src/
 ├── main.jsx                      # React entry point
 ├── index.css                     # global reset
 ├── components/
-│   ├── PushFoldTrainer.jsx       # main orchestrator + trainer view
+│   ├── PushFoldTrainer.jsx       # main orchestrator (tabs + state)
 │   ├── TritonCard.jsx            # GGPoker 4-color card visual
 │   ├── MiniTable.jsx             # interactive seat-count + position SVG table
 │   ├── RangeViewer.jsx           # 13×13 hand grid, color-coded
-│   ├── SessionReview.jsx         # post-session stats + leak detection
+│   ├── SessionReview.jsx         # trainer-hand stats + leak detection
 │   ├── ICMSetup.jsx              # custom stacks + payouts editor
-│   └── ChipRow.jsx               # reusable chip-style picker
+│   ├── LearnView.jsx             # lesson list + reader
+│   ├── DrillsView.jsx            # drill picker + per-drill stats
+│   ├── ChipRow.jsx               # reusable chip-style picker
+│   └── drills/
+│       ├── DrillShared.jsx       # frame, choice button, number input, feedback
+│       ├── PotOddsDrill.jsx
+│       ├── RequiredEquityDrill.jsx
+│       ├── HandVsHandDrill.jsx
+│       ├── OutsDrill.jsx
+│       ├── FoldEquityDrill.jsx
+│       └── HandRankingDrill.jsx
 ├── data/
 │   ├── pushRanges.js             # Nash open-shove ranges by position
 │   ├── callRanges.js             # call ranges vs different shover positions
 │   ├── reshoveRanges.js          # reshove ranges over a min-raise
 │   ├── tableConfigs.js           # HU / 3-max / 6-max / 9-max definitions
-│   └── icmStages.js              # stage-based ICM multipliers
+│   ├── icmStages.js              # stage-based ICM multipliers
+│   ├── equityMatchups.js         # precomputed preflop heads-up equities
+│   └── lessons.js                # lesson content (data, not JSX)
 └── lib/
     ├── handUtils.js              # rank constants, hand-code, random dealing
     ├── decisionLogic.js          # optimal action + threshold lookups
     ├── reasoning.js              # template-based coaching text generation
+    ├── oddsCalc.js               # pot odds, outs-to-equity, fold equity math
     └── icm.js                    # Malmuth-Harville ICM equity calculator
 ```
 
