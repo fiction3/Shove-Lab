@@ -3,13 +3,15 @@ import { LESSONS } from "../data/lessons.js";
 import useMediaQuery from "../lib/useMediaQuery.js";
 
 /**
- * Two-pane layout: lesson list on the left, selected lesson on the right.
- * Each lesson renders its sections according to type (prose, heading, list,
- * example callout, or calc expression).
+ * Two-pane lesson reader. Used by both the Learn tab (strategy lessons) and
+ * the Basics tab (beginner lessons). Pass `lessons` to override the default
+ * strategy lesson set, and `listLabel` to change the sidebar header.
+ *
+ * Section types supported: prose | heading | example | calc | list
  */
-export default function LearnView({ onJumpToDrill }) {
-  const [activeId, setActiveId] = useState(LESSONS[0].id);
-  const active = LESSONS.find(l => l.id === activeId);
+export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel = "Lessons" }) {
+  const [activeId, setActiveId] = useState(lessons[0].id);
+  const active = lessons.find(l => l.id === activeId) || lessons[0];
   const isMobile = useMediaQuery(768);
 
   return (
@@ -32,9 +34,9 @@ export default function LearnView({ onJumpToDrill }) {
           fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase",
           opacity: 0.5, marginBottom: 12, padding: "0 4px",
         }}>
-          Lessons
+          {listLabel}
         </div>
-        {LESSONS.map((lesson, i) => {
+        {lessons.map((lesson, i) => {
           const isActive = lesson.id === activeId;
           return (
             <button
@@ -148,8 +150,8 @@ export default function LearnView({ onJumpToDrill }) {
           borderTop: "1px solid rgba(232,227,211,0.12)",
           display: "flex", justifyContent: "space-between", gap: 16,
         }}>
-          <LessonNavButton lessons={LESSONS} activeId={activeId} direction={-1} onClick={setActiveId}/>
-          <LessonNavButton lessons={LESSONS} activeId={activeId} direction={1} onClick={setActiveId}/>
+          <LessonNavButton lessons={lessons} activeId={activeId} direction={-1} onClick={setActiveId}/>
+          <LessonNavButton lessons={lessons} activeId={activeId} direction={1} onClick={setActiveId}/>
         </nav>
       </article>
     </div>

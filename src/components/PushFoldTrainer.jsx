@@ -28,6 +28,7 @@ import RangeViewer from "./RangeViewer.jsx";
 import SessionReview from "./SessionReview.jsx";
 import ICMSetup from "./ICMSetup.jsx";
 import LearnView from "./LearnView.jsx";
+import { BASICS_LESSONS } from "../data/basicsLessons.js";
 import DrillsView from "./DrillsView.jsx";
 import RangePopover from "./RangePopover.jsx";
 import HandsView from "./HandsView.jsx";
@@ -110,6 +111,7 @@ function ViewTabs({ view, onChange }) {
   return (
     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
       {[
+        { value: "basics", label: "Basics" },
         { value: "trainer", label: "Trainer" },
         { value: "hands", label: "Hands" },
         { value: "learn", label: "Learn" },
@@ -889,6 +891,10 @@ export default function PushFoldTrainer() {
 
         {view === "learn" && (
           <LearnView onJumpToDrill={jumpToDrill}/>
+        )}
+
+        {view === "basics" && (
+          <LearnView lessons={BASICS_LESSONS} listLabel="Basics"/>
         )}
 
         {view === "hands" && (

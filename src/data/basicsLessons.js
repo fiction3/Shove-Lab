@@ -1,0 +1,203 @@
+// True-beginner lessons. Friendly, conversational, no jargon assumed.
+// Same data shape as the Learn lessons so they can share the renderer:
+//   section types: prose | heading | example | calc | list
+
+export const BASICS_LESSONS = [
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "what-is-holdem",
+    title: "What is Texas Hold'em?",
+    subtitle: "The basic idea, in plain English",
+    estimatedMinutes: 4,
+    sections: [
+      { type: "prose", text: "Welcome. If you've never played poker, this is the right page to start. We'll explain what Texas Hold'em actually is, what you're trying to do, and why it's interesting. No jargon yet — we'll add words as we need them." },
+      { type: "heading", text: "The simplest version" },
+      { type: "prose", text: "You and a group of other players each get two cards that only you can see. Then over the course of the hand, five more cards get placed face-up in the middle of the table — these are shared by everyone. You make the best possible five-card poker hand by combining your two private cards with the five shared cards. Highest hand wins the pot." },
+      { type: "prose", text: "That's it at the most basic level. Two cards just for you, five cards on the table that everyone shares, best five-card poker hand wins." },
+      { type: "heading", text: "But it's also about betting" },
+      { type: "prose", text: "If poker were just \"highest cards wins,\" it would be a luck-based game. What makes it a skill game is the betting. After the deal, there are several rounds where players can bet, raise, or fold (give up their hand). You don't actually have to have the best cards to win — if everyone else folds, the pot is yours regardless of what you held." },
+      { type: "example", title: "A typical hand in one sentence", body: "You're dealt two cards. Some betting happens. Three cards appear in the middle. More betting. A fourth card. More betting. A fifth card. Final betting. Anyone still in the hand reveals their cards. Highest five-card hand wins the pot." },
+      { type: "heading", text: "Why people play" },
+      { type: "prose", text: "Poker rewards a mix of math, reading people, and patience. The best players don't win every hand — nobody can — but they make better decisions across thousands of hands, and those decisions add up. The goal of this trainer is to help you make better decisions, one concept at a time." },
+      { type: "prose", text: "Next up: the order of play, and what happens in each betting round." },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "the-deal",
+    title: "The Deal: Preflop, Flop, Turn, River",
+    subtitle: "What happens in each round of the hand",
+    estimatedMinutes: 5,
+    sections: [
+      { type: "prose", text: "Every hand of Texas Hold'em goes through the same four stages. Once you know them, the structure of the game makes sense. Memorize these four words — you'll see them constantly." },
+      { type: "heading", text: "1. Preflop" },
+      { type: "prose", text: "After the cards are shuffled, the dealer gives each player two cards face-down. These are your hole cards — only you can see them. Then there's a round of betting where each player decides whether they want to stay in the hand or fold." },
+      { type: "prose", text: "If you fold preflop, you give up your two cards and you're out of this hand. You lose whatever you've already put into the pot, but no more. If you stay in (by calling or raising), you move to the next stage." },
+      { type: "heading", text: "2. The Flop" },
+      { type: "prose", text: "Three community cards are dealt face-up in the middle of the table. These are shared — every player still in the hand can use them. Now you have five cards to think with: your two hole cards plus the three on the flop. Another round of betting happens." },
+      { type: "example", title: "Example flop", body: "You hold the K♠ and Q♦. The flop comes K♥ 7♣ 2♠. You now have a pair of Kings, because your K♠ pairs with the K♥ on the board. Decent hand, you'd usually keep playing." },
+      { type: "heading", text: "3. The Turn" },
+      { type: "prose", text: "A fourth community card is dealt face-up. Now there are six cards to think with: your two plus four on the board. Another round of betting." },
+      { type: "heading", text: "4. The River" },
+      { type: "prose", text: "The final community card. Now there are seven cards total — your two plus five on the board. You make the best five-card hand you can from those seven. Last round of betting." },
+      { type: "heading", text: "Showdown" },
+      { type: "prose", text: "If two or more players are still in the hand after the river betting, they show their cards. Whoever has the best five-card hand wins the pot." },
+      { type: "prose", text: "Most of the time, hands don't actually reach showdown. Someone bets aggressively enough that everyone else folds, and they win the pot without ever showing their cards. This is important — it means you can win pots without the best hand if you play well." },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "blinds-and-button",
+    title: "The Blinds and the Button",
+    subtitle: "Why some players are forced to bet before the cards are dealt",
+    estimatedMinutes: 5,
+    sections: [
+      { type: "prose", text: "If you've seen a game and wondered why two players seem to put chips in before anyone even looks at their cards, this is the answer. It's called posting the blinds, and it's the engine that keeps the game moving." },
+      { type: "heading", text: "Why blinds exist" },
+      { type: "prose", text: "Imagine if there were no forced bets. Players could just keep folding forever, waiting for premium hands like pocket Aces. Hands would take forever and there'd be nothing in the pot worth fighting for. The blinds fix this: by forcing two players each hand to put in some chips, every pot starts with money in it that's worth winning." },
+      { type: "heading", text: "How they work" },
+      { type: "prose", text: "Two players each hand are forced to put chips in before any cards are dealt:" },
+      { type: "list", items: [
+        "The Small Blind (SB) puts in a half-bet (often called \"0.5bb\")",
+        "The Big Blind (BB) puts in a full bet (1bb)",
+        "Everyone else acts after them, and decides whether to fold, call (match the bet), or raise (make it bigger)",
+      ]},
+      { type: "prose", text: "These are the seats immediately to the left of the dealer. After each hand, the position of the dealer rotates one seat to the left — so over time, every player takes a turn being the dealer, then small blind, then big blind. This makes the forced-bet burden share evenly across the table." },
+      { type: "heading", text: "The Button" },
+      { type: "prose", text: "The \"button\" is a small plastic disk that marks who the dealer would be (in casino games, an actual dealer deals; the button just tracks the rotation). Players to the left of the button act first. The button is the strongest seat at the table because the player on the button acts last in every round of betting after preflop — they see what everyone else does before deciding." },
+      { type: "example", title: "Why acting last matters", body: "If three players check (don't bet) ahead of you and you're on the button, you've learned that none of them have a strong hand they want to put money in with. You can bet aggressively to try to take the pot. If you were first to act, you'd have to guess." },
+      { type: "heading", text: "What \"bb\" means" },
+      { type: "prose", text: "When you see \"15bb\" in this trainer, it means \"15 big blinds.\" If the big blind is currently $100, then 15bb = $1500. Players track stacks in big blinds because the actual chip value changes throughout a tournament (the blinds keep going up), but a 15bb stack always means the same thing strategically: short, dangerous, time to start shoving." },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "betting-actions",
+    title: "Betting Actions",
+    subtitle: "Fold, check, call, bet, raise, all-in — what each one means",
+    estimatedMinutes: 5,
+    sections: [
+      { type: "prose", text: "When it's your turn to act, you always have a choice between a small number of possible actions. There are only six of them, and they're not complicated. This page explains each one." },
+      { type: "heading", text: "Fold" },
+      { type: "prose", text: "You give up your hand and place your two cards face-down in front of the dealer. You're out of this hand. Whatever chips you've already put in the pot stay there — they're not refunded. But you don't risk any more." },
+      { type: "prose", text: "Folding is the most common action in poker. Most hands you're dealt aren't worth playing. Strong players fold a lot, especially preflop, and it's not a sign of weakness — it's a sign of discipline." },
+      { type: "heading", text: "Check" },
+      { type: "prose", text: "You're saying \"I want to stay in the hand, but I don't want to bet right now.\" You can only check if no one has bet ahead of you in the current round. If everyone checks around the table, the round ends and the next community card comes out." },
+      { type: "heading", text: "Call" },
+      { type: "prose", text: "You match someone else's bet. If they bet 3bb, you put 3bb in too. You're saying \"I want to keep playing this hand, and I'm willing to put this much in to see what happens next.\"" },
+      { type: "heading", text: "Bet" },
+      { type: "prose", text: "You're the first one to put chips in this round. You pick an amount (e.g. \"bet 5bb\") and place it. Now everyone after you has to decide whether to fold, call your 5bb, or raise it higher." },
+      { type: "heading", text: "Raise" },
+      { type: "prose", text: "Someone bet before you, and you want to make it more expensive. If they bet 3bb, you can raise to 8bb (now anyone who wants to keep playing has to put 8bb in). Raising is how you build pots when you have a strong hand, and how you put pressure on weaker hands to fold." },
+      { type: "heading", text: "All-in" },
+      { type: "prose", text: "You push all your remaining chips into the pot. This is the most extreme action — once you go all-in, you can't bet any more in this hand (you have nothing left). But you also can't be forced out by someone else raising. You're committed for the rest of the hand." },
+      { type: "example", title: "Why go all-in?", body: "Going all-in does two important things at once. First, it puts maximum pressure on opponents — they have to risk a lot to call you. Second, you no longer have to make any more decisions in this hand. For short-stack play (under ~15 big blinds), going all-in becomes the standard aggressive move, because you don't have enough chips to make smaller raises that have any leverage." },
+      { type: "heading", text: "Practical note" },
+      { type: "prose", text: "In this trainer's modes, you're usually offered the most relevant subset of actions for the situation. In short-stack situations (Shove mode), the choice is just fold or shove. In deeper-stack situations (Open Raise mode), you get fold / raise / shove. The trainer is designed to teach you which action is correct in each context, one decision at a time." },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "reading-the-board",
+    title: "Reading the Board",
+    subtitle: "Figuring out what hands are possible from the community cards",
+    estimatedMinutes: 5,
+    sections: [
+      { type: "prose", text: "When five community cards are on the table, lots of different hands are possible. Part of becoming a decent player is glancing at the board and immediately understanding what could and couldn't be out there. This skill takes practice, but the framework is simple." },
+      { type: "heading", text: "Look at the board, then ask three questions" },
+      { type: "list", items: [
+        "What straights are possible? Are there enough connected ranks (like 6-7-8) for someone to have a five-card straight?",
+        "What flushes are possible? Are there three or more cards of the same suit on the board?",
+        "What full houses or quads are possible? Is the board paired (two cards of the same rank), making a full house possible for anyone with the third matching rank?",
+      ]},
+      { type: "heading", text: "Worked example" },
+      { type: "example", title: "Board: 9♥ 8♥ 7♦ 2♣ 4♠", body: "Straights are possible — anyone holding T-J, 6-T, 5-6, or J-T would have a straight. Flushes are NOT possible — there are only two hearts on the board, not three. Full houses are NOT possible — no pair on the board. So the strongest realistic hand someone could have is a straight, and that's the threat to watch out for." },
+      { type: "heading", text: "Why this matters" },
+      { type: "prose", text: "Suppose you have two pair on this board (say, pocket 9s plus the 9 on the flop = three nines). That's a strong hand. But if someone raises you hard, you need to think: \"Could they have a straight? Yes, the board makes it possible. Would they really raise this much without a straight?\" Reading the board is what turns a strong hand into either a winning value bet or a costly bluff catcher." },
+      { type: "heading", text: "Common dangerous boards" },
+      { type: "list", items: [
+        "Three-card flush draws (3 cards of the same suit) — anyone with a fourth card of that suit makes a flush",
+        "Three connected cards (like 8-9-T) — many possible straight combinations",
+        "Paired boards (two cards of the same rank) — full houses become real threats",
+      ]},
+      { type: "prose", text: "Memorize those three patterns. Almost every postflop \"trouble\" hand in poker comes from one of them." },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "winning-the-pot",
+    title: "How You Win Chips",
+    subtitle: "Showdown, folds, and what happens with the pot",
+    estimatedMinutes: 4,
+    sections: [
+      { type: "prose", text: "There are only two ways to win a hand of poker, and the better players in the world spend a lot of time thinking about both. They're more different than they look." },
+      { type: "heading", text: "Way 1: Everyone else folds" },
+      { type: "prose", text: "If you bet or raise and every other player folds, you win the pot immediately without showing your cards. You don't have to have the best hand. You don't even have to have a hand — you could be holding 2-7 offsuit, the worst starting hand in poker, and still win if everyone folds." },
+      { type: "prose", text: "This is most poker pots. The majority of hands end without a showdown. Players give up before the river because they decide it's not worth continuing." },
+      { type: "heading", text: "Way 2: Showdown" },
+      { type: "prose", text: "If two or more players reach the river and the final betting round ends with bets called rather than re-raised, all remaining players show their cards. Whoever has the best five-card hand wins the pot." },
+      { type: "prose", text: "When you show your cards, the dealer reads everyone's hand and announces the winner. If two players tie (same hand, like both holding a pair of Kings with the same kickers), the pot is split between them." },
+      { type: "heading", text: "What makes one strategy better than another" },
+      { type: "prose", text: "Imagine two players. Player A only plays great hands and waits patiently. Player B plays more hands but applies pressure and gets opponents to fold a lot. Over thousands of hands, which one wins more chips?" },
+      { type: "prose", text: "Surprisingly often, it's Player B. Most pots are won by folds, not by showdowns. Player A is leaving \"fold equity\" on the table — they could be winning pots their cards wouldn't justify, simply by being more aggressive. This is one of the most important early lessons in poker." },
+      { type: "example", title: "But aggression has a cost", body: "Player B's aggression only works if they don't get caught too often. If every time they bet, opponents call them down, they'll lose. The skill is figuring out when opponents are likely to fold and when they're not. Position matters a lot here — see the \"Position\" lesson in the Learn tab." },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "what-is-mtt",
+    title: "What is an MTT?",
+    subtitle: "Tournament vs cash game, and what makes tournaments unique",
+    estimatedMinutes: 5,
+    sections: [
+      { type: "prose", text: "This trainer is specifically about MTTs — Multi-Table Tournaments. Before we go deeper, here's the difference between a tournament and a cash game, and why it matters." },
+      { type: "heading", text: "Cash game" },
+      { type: "prose", text: "In a cash game, every chip you have is worth its face value. If you have $500 in chips, those are real dollars — you can leave the table at any time and walk out with $500. Blinds stay the same all night. You can re-buy chips if you go broke. It's like roulette: you can play one hand and leave, or sit for hours." },
+      { type: "heading", text: "Tournament (MTT)" },
+      { type: "prose", text: "You buy in once at the start for a fixed amount (say $100). Everyone starts with the same chip stack. You play until you have all the chips or run out completely. As time goes by, the blinds increase, forcing action and eliminating short stacks." },
+      { type: "prose", text: "Only the top finishers win money. The exact payout depends on the tournament, but typically the top 10-15% of the field cash in, and the prize money is heavily weighted toward the top three places. First place usually wins around 20-30% of the entire prize pool." },
+      { type: "example", title: "A 500-player $100 tournament", body: "Prize pool: $50,000. Maybe top 70 cash, getting at least their buy-in back. 50th place gets $200. 10th place gets $1,000. 1st place gets $10,000. So the difference between min-cashing and winning is massive — and this shapes how you should play near the bubble and final table." },
+      { type: "heading", text: "Why MTT play is different" },
+      { type: "prose", text: "Three things make tournaments strategically distinct from cash games:" },
+      { type: "list", items: [
+        "Increasing blinds force action — you can't just wait for premium hands forever, the blinds will eat your stack",
+        "ICM (Independent Chip Model) — chip value isn't linear in tournaments. Doubling your stack doesn't double your tournament equity. This makes short-stack and bubble play much more cautious",
+        "Short-stack situations are common — when blinds are high and your stack is small, most decisions become \"shove all-in or fold,\" with no postflop play",
+      ]},
+      { type: "prose", text: "The \"Shove\" mode in the trainer specifically teaches you how to play those short-stack situations, which is the single biggest skill in MTT poker." },
+    ],
+  },
+
+  // ──────────────────────────────────────────────────────────────────
+  {
+    id: "beginner-mistakes",
+    title: "Common Beginner Mistakes",
+    subtitle: "The leaks that lose money fastest",
+    estimatedMinutes: 6,
+    sections: [
+      { type: "prose", text: "Most beginners lose money the same way. The good news: if you can identify these mistakes in your own play, you'll improve faster than 90% of recreational players. Here are the big ones, ranked roughly by how much money they cost." },
+      { type: "heading", text: "1. Playing too many hands" },
+      { type: "prose", text: "The biggest leak by far. New players love to see flops, so they call with hands like Q7 offsuit, K6 suited, or 95 from early position. These hands lose money over time. There's no exact \"correct\" number, but a tight player at a 6-max table will play around 20-25% of starting hands. Recreational players often play 40%+, which is a huge leak." },
+      { type: "prose", text: "The fix: most hands you're dealt aren't worth playing. Get comfortable folding. You're not missing out — you're saving money for the hands that are actually worth playing." },
+      { type: "heading", text: "2. Calling too much" },
+      { type: "prose", text: "Closely related to #1. Once you decide to play a hand, the next mistake is calling bets instead of folding or raising. \"Calling stations\" — players who call too much postflop — are the easiest opponents to beat because they don't put pressure on others and they don't fold when they should." },
+      { type: "prose", text: "If you're going to play a hand, ask yourself: \"Am I planning to bet/raise to win this pot, or just hoping I hit my card?\" If it's the second one and you're getting bad pot odds, fold." },
+      { type: "heading", text: "3. Not respecting position" },
+      { type: "prose", text: "Beginners often play the same hands from every position. But position is one of the single most important variables in poker. A hand that's profitable on the button (acting last) is often a clear fold from under-the-gun (acting first). The Learn tab's \"Position\" lesson covers this in detail." },
+      { type: "heading", text: "4. Slowplaying big hands" },
+      { type: "prose", text: "You flop a set (three of a kind), get excited, and try to be clever by checking. Then everyone checks behind, the turn brings a flush draw, and now you're worried about giving free cards. Slowplaying loses you value — when you have a strong hand, bet it. Most opponents will pay you off because they don't believe you have it." },
+      { type: "heading", text: "5. Bluffing without a plan" },
+      { type: "prose", text: "A bluff has to make sense given what story you're telling. If you check-called the flop and check-called the turn, suddenly betting big on the river with nothing makes no sense — your story is \"I have a medium hand,\" not \"I have a monster.\" Good bluffs come from situations where it would make sense if you did have it." },
+      { type: "heading", text: "6. Tilt" },
+      { type: "prose", text: "Tilt is the emotional state of playing poorly because you're upset about something — usually a bad beat (losing with the best hand). Tilt costs more money than any technical mistake. The fix is simple but hard: when you feel yourself tilting, leave the table. Come back when your head is clear. The game will still be there." },
+      { type: "heading", text: "Where to go from here" },
+      { type: "prose", text: "Now that you have the basics, head to the Hands tab to lock in hand rankings, then to Learn for strategy lessons (Position, Pot Odds, etc.), then to Drills to practice the math. The Trainer tab is where it all comes together — actual poker decisions with feedback." },
+    ],
+  },
+];
