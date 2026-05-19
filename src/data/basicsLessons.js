@@ -11,6 +11,7 @@ export const BASICS_LESSONS = [
     estimatedMinutes: 4,
     sections: [
       { type: "prose", text: "Welcome. If you've never played poker, this is the right page to start. We'll explain what Texas Hold'em actually is, what you're trying to do, and why it's interesting. No jargon yet — we'll add words as we need them." },
+      { type: "visual", visual: "holdem-hero" },
       { type: "heading", text: "The simplest version" },
       { type: "prose", text: "You and a group of other players each get two cards that only you can see. Then over the course of the hand, five more cards get placed face-up in the middle of the table — these are shared by everyone. You make the best possible five-card poker hand by combining your two private cards with the five shared cards. Highest hand wins the pot." },
       { type: "prose", text: "That's it at the most basic level. Two cards just for you, five cards on the table that everyone shares, best five-card poker hand wins." },
@@ -31,6 +32,7 @@ export const BASICS_LESSONS = [
     estimatedMinutes: 5,
     sections: [
       { type: "prose", text: "Every hand of Texas Hold'em goes through the same four stages. Once you know them, the structure of the game makes sense. Memorize these four words — you'll see them constantly." },
+      { type: "visual", visual: "deal-sequence" },
       { type: "heading", text: "1. Preflop" },
       { type: "prose", text: "After the cards are shuffled, the dealer gives each player two cards face-down. These are your hole cards — only you can see them. Then there's a round of betting where each player decides whether they want to stay in the hand or fold." },
       { type: "prose", text: "If you fold preflop, you give up your two cards and you're out of this hand. You lose whatever you've already put into the pot, but no more. If you stay in (by calling or raising), you move to the next stage." },
@@ -55,6 +57,7 @@ export const BASICS_LESSONS = [
     estimatedMinutes: 5,
     sections: [
       { type: "prose", text: "If you've seen a game and wondered why two players seem to put chips in before anyone even looks at their cards, this is the answer. It's called posting the blinds, and it's the engine that keeps the game moving." },
+      { type: "visual", visual: "blinds-button" },
       { type: "heading", text: "Why blinds exist" },
       { type: "prose", text: "Imagine if there were no forced bets. Players could just keep folding forever, waiting for premium hands like pocket Aces. Hands would take forever and there'd be nothing in the pot worth fighting for. The blinds fix this: by forcing two players each hand to put in some chips, every pot starts with money in it that's worth winning." },
       { type: "heading", text: "How they work" },
@@ -119,6 +122,7 @@ export const BASICS_LESSONS = [
       { type: "heading", text: "Why this matters" },
       { type: "prose", text: "Suppose you have two pair on this board (say, pocket 9s plus the 9 on the flop = three nines). That's a strong hand. But if someone raises you hard, you need to think: \"Could they have a straight? Yes, the board makes it possible. Would they really raise this much without a straight?\" Reading the board is what turns a strong hand into either a winning value bet or a costly bluff catcher." },
       { type: "heading", text: "Common dangerous boards" },
+      { type: "visual", visual: "dangerous-boards" },
       { type: "list", items: [
         "Three-card flush draws (3 cards of the same suit) — anyone with a fourth card of that suit makes a flush",
         "Three connected cards (like 8-9-T) — many possible straight combinations",
@@ -163,6 +167,7 @@ export const BASICS_LESSONS = [
       { type: "prose", text: "You buy in once at the start for a fixed amount (say $100). Everyone starts with the same chip stack. You play until you have all the chips or run out completely. As time goes by, the blinds increase, forcing action and eliminating short stacks." },
       { type: "prose", text: "Only the top finishers win money. The exact payout depends on the tournament, but typically the top 10-15% of the field cash in, and the prize money is heavily weighted toward the top three places. First place usually wins around 20-30% of the entire prize pool." },
       { type: "example", title: "A 500-player $100 tournament", body: "Prize pool: $50,000. Maybe top 70 cash, getting at least their buy-in back. 50th place gets $200. 10th place gets $1,000. 1st place gets $10,000. So the difference between min-cashing and winning is massive — and this shapes how you should play near the bubble and final table." },
+      { type: "visual", visual: "mtt-payouts" },
       { type: "heading", text: "Why MTT play is different" },
       { type: "prose", text: "Three things make tournaments strategically distinct from cash games:" },
       { type: "list", items: [

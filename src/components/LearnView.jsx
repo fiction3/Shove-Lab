@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LESSONS } from "../data/lessons.js";
+import { LESSON_VISUALS } from "./LessonVisuals.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
 
 /**
@@ -13,6 +14,13 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
   const [activeId, setActiveId] = useState(lessons[0].id);
   const active = lessons.find(l => l.id === activeId) || lessons[0];
   const isMobile = useMediaQuery(768);
+
+  // When the user navigates to a different lesson (via sidebar, next/prev,
+  // or anywhere else), scroll back to the top so they see the lesson title
+  // instead of starting mid-page.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeId]);
 
   return (
     <div style={{
@@ -245,6 +253,11 @@ function Section({ section }) {
           {section.expression}
         </div>
       );
+    case "visual": {
+      const VisualComponent = LESSON_VISUALS[section.visual];
+      if (!VisualComponent) return null;
+      return <VisualComponent {...(section.props || {})}/>;
+    }
     default:
       return null;
   }
