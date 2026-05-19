@@ -104,12 +104,12 @@ export default function SessionReview({ history, onClear }) {
     .slice(0, 3);
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
       <div style={panelStyle}>
         <SectionTitle>Overall</SectionTitle>
         <div style={{ display: "flex", gap: 20, alignItems: "baseline" }}>
           <div>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 56, color: "#d4a13b", lineHeight: 1 }}>
+            <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 56, fontWeight: 700, color: "#d4a13b", lineHeight: 1, letterSpacing: "-0.02em" }}>
               {accuracy}%
             </div>
             <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
@@ -164,7 +164,7 @@ export default function SessionReview({ history, onClear }) {
                 </span>
               </div>
               <div style={{
-                fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#e07a5f",
+                fontFamily: "'Inter', sans-serif", fontSize: 22, fontWeight: 700, color: "#e07a5f",
               }}>
                 {Math.round(spot.acc * 100)}%
               </div>

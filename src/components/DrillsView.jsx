@@ -5,6 +5,7 @@ import HandVsHandDrill from "./drills/HandVsHandDrill.jsx";
 import OutsDrill from "./drills/OutsDrill.jsx";
 import FoldEquityDrill from "./drills/FoldEquityDrill.jsx";
 import HandRankingDrill from "./drills/HandRankingDrill.jsx";
+import useMediaQuery from "../lib/useMediaQuery.js";
 
 const DRILL_DEFS = [
   { id: "pot-odds",        label: "Pot Odds",          description: "Given pot + bet, find required equity %", component: PotOddsDrill },
@@ -24,6 +25,7 @@ const DRILL_DEFS = [
  */
 export default function DrillsView({ initialDrill, history, addHistory }) {
   const [activeId, setActiveId] = useState(initialDrill || DRILL_DEFS[0].id);
+  const isMobile = useMediaQuery(768);
 
   // If parent passes a new initialDrill (deep link), switch to it
   useEffect(() => {
@@ -106,8 +108,8 @@ export default function DrillsView({ initialDrill, history, addHistory }) {
       {/* Two-column: active drill on left, stats on right */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "1fr 280px",
-        gap: 20, alignItems: "start",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 280px",
+        gap: isMobile ? 16 : 20, alignItems: "start",
       }}>
         <div>
           <ActiveDrill onAnswer={handleAnswer} key={activeId + "-" + history.length}/>
@@ -128,8 +130,8 @@ export default function DrillsView({ initialDrill, history, addHistory }) {
           {overallAcc !== null ? (
             <>
               <div style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 44, color: "#d4a13b", lineHeight: 1,
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 44, fontWeight: 700, color: "#d4a13b", lineHeight: 1, letterSpacing: "-0.02em",
               }}>
                 {overallAcc}%
               </div>

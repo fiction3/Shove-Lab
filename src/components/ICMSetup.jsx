@@ -32,7 +32,7 @@ function Stat({ label, value, highlight }) {
         {label}
       </div>
       <div style={{
-        fontFamily: "'Cormorant Garamond', serif", fontSize: 28,
+        fontFamily: "'Inter', sans-serif", fontSize: 26, fontWeight: 700,
         color: highlight ? "#e07a5f" : "#d4a13b", marginTop: 4,
       }}>{value}</div>
     </div>
@@ -73,7 +73,7 @@ export default function ICMSetup({ icmState, setICMState, computedMults }) {
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
       <div style={{
         background: "rgba(10,24,22,0.6)",
         border: "1px solid rgba(232,227,211,0.1)",
@@ -134,7 +134,7 @@ export default function ICMSetup({ icmState, setICMState, computedMults }) {
         <p style={{ fontSize: 13, opacity: 0.85, margin: "0 0 12px 0" }}>
           Based on your stacks and payouts, the following multipliers will be applied to Nash thresholds when ICM mode is set to <strong>Custom</strong> in the trainer:
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
           <Stat label="Push multiplier" value={`${(computedMults.push * 100).toFixed(0)}%`}/>
           <Stat label="Call multiplier" value={`${(computedMults.call * 100).toFixed(0)}%`} highlight/>
           <Stat label="Reshove multiplier" value={`${(computedMults.reshove * 100).toFixed(0)}%`}/>

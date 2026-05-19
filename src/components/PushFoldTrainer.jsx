@@ -31,6 +31,7 @@ import DrillsView from "./DrillsView.jsx";
 import RangePopover from "./RangePopover.jsx";
 import HandsView from "./HandsView.jsx";
 import RangeGridIcon from "./RangeGridIcon.jsx";
+import useMediaQuery from "../lib/useMediaQuery.js";
 
 // ---------- Styles (kept inline for now, can extract later) ----------
 
@@ -49,20 +50,21 @@ const questionStyle = {
   borderRadius: 4, fontStyle: "italic", fontSize: 12,
 };
 
-function actionBtn(revealed, chosen, isCorrect, base) {
+function actionBtn(revealed, chosen, isCorrect, base, isMobile) {
   const showResult = revealed && chosen;
   return {
     background: showResult ? (isCorrect ? "#7fc69a" : "#e07a5f") : base,
     color: showResult ? "#0a1816" : "#fafaf7",
     border: "none",
-    padding: "14px 32px",
+    padding: isMobile ? "14px 18px" : "14px 32px",
     borderRadius: 6,
     cursor: revealed ? "default" : "pointer",
     fontSize: 12,
     letterSpacing: "0.2em",
     textTransform: "uppercase",
     fontWeight: 600,
-    minWidth: 160,
+    minWidth: isMobile ? 96 : 160,
+    flex: isMobile ? 1 : "0 0 auto",
     opacity: revealed && !chosen ? 0.35 : 1,
     transition: "all 0.2s",
     boxShadow: showResult ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.2)",
@@ -167,6 +169,7 @@ export default function PushFoldTrainer() {
   const [drillHistory, setDrillHistory] = useState([]);
   const [drillDeepLink, setDrillDeepLink] = useState(null);
   const [rangePopoverOpen, setRangePopoverOpen] = useState(false);
+  const isMobile = useMediaQuery(768);
 
   function addDrillHistory(entry) {
     setDrillHistory(h => [...h, entry]);
@@ -352,16 +355,17 @@ export default function PushFoldTrainer() {
       background: "radial-gradient(ellipse at top, #15302a 0%, #0a1816 60%, #050b0a 100%)",
       color: "#e8e3d3",
       fontFamily: "'Inter', system-ui, sans-serif",
-      padding: "24px 24px 32px 24px",
+      padding: isMobile ? "12px 12px 24px 12px" : "24px 24px 32px 24px",
     }}>
       <header style={{
         maxWidth: 1200, margin: "0 auto 16px auto",
-        display: "flex", justifyContent: "space-between", alignItems: "baseline",
+        display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "baseline",
+        flexWrap: "wrap", gap: 12,
       }}>
         <div>
           <div style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",
-            fontSize: 30, fontWeight: 600, letterSpacing: "-0.01em",
+            fontSize: isMobile ? 24 : 30, fontWeight: 600, letterSpacing: "-0.01em",
           }}>
             Shove<span style={{ color: "#d4a13b" }}>·</span>Lab
           </div>
@@ -373,7 +377,7 @@ export default function PushFoldTrainer() {
           <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
             {accuracy !== null && (
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, color: "#d4a13b" }}>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 26, fontWeight: 700, color: "#d4a13b" }}>
                   {accuracy}%
                 </div>
                 <div style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.5 }}>
@@ -415,8 +419,11 @@ export default function PushFoldTrainer() {
         {view === "trainer" && (
           <div style={{
             display: "grid",
-            gridTemplateColumns: explanationsOn ? "300px 1fr 340px" : "300px 1fr",
-            gap: 24, alignItems: "start",
+            gridTemplateColumns: isMobile
+              ? "1fr"
+              : (explanationsOn ? "300px 1fr 340px" : "300px 1fr"),
+            gap: isMobile ? 16 : 24,
+            alignItems: "start",
           }}>
             <aside style={{
               background: "rgba(10,24,22,0.6)",
@@ -476,7 +483,7 @@ export default function PushFoldTrainer() {
               background: "linear-gradient(180deg, rgba(15,40,32,0.6) 0%, rgba(8,22,18,0.8) 100%)",
               borderRadius: 16,
               border: "1px solid rgba(212,161,59,0.2)",
-              padding: 32, position: "relative", overflow: "hidden",
+              padding: isMobile ? 18 : 32, position: "relative", overflow: "hidden",
             }}>
               <div style={{
                 position: "absolute", inset: 0,
@@ -504,7 +511,7 @@ export default function PushFoldTrainer() {
                       Preflop
                     </span>
                   </div>
-                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, marginTop: 4 }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: isMobile ? 17 : 20, marginTop: 4 }}>
                     {actionLabel}
                   </div>
                 </div>
@@ -513,18 +520,18 @@ export default function PushFoldTrainer() {
                     {mode === "call" ? "To call" : "Effective stack"}
                   </div>
                   <div style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 26, marginTop: 4, color: "#d4a13b",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: isMobile ? 22 : 26, fontWeight: 700, marginTop: 4, color: "#d4a13b",
                     display: "flex", alignItems: "baseline",
                     justifyContent: "flex-end", gap: 4,
                   }}>
                     <span>{stack}</span>
                     <span style={{
                       fontFamily: "'Inter', sans-serif",
-                      fontSize: 13,
-                      letterSpacing: "0.05em",
+                      fontSize: isMobile ? 14 : 16,
+                      letterSpacing: "0.03em",
                       fontWeight: 600,
-                      opacity: 0.7,
+                      opacity: 0.85,
                     }}>
                       bb
                     </span>
@@ -545,8 +552,8 @@ export default function PushFoldTrainer() {
                     {villain || "Villain"}'s hand
                   </div>
                   <div style={{ display: "flex", gap: 2, opacity: 0.6 }}>
-                    <TritonCard hidden size={60}/>
-                    <TritonCard hidden size={60}/>
+                    <TritonCard hidden size={isMobile ? 50 : 60}/>
+                    <TritonCard hidden size={isMobile ? 50 : 60}/>
                   </div>
                 </div>
               )}
@@ -565,8 +572,8 @@ export default function PushFoldTrainer() {
                   Your hand
                 </div>
                 <div style={{ display: "flex", gap: 2 }}>
-                  <TritonCard card={hand[0]} size={90}/>
-                  <TritonCard card={hand[1]} size={90}/>
+                  <TritonCard card={hand[0]} size={isMobile ? 76 : 90}/>
+                  <TritonCard card={hand[1]} size={isMobile ? 76 : 90}/>
                 </div>
               </div>
 
@@ -574,7 +581,7 @@ export default function PushFoldTrainer() {
                 {actions.map(a => (
                   <button key={a.value}
                     onClick={() => decide(a.value)} disabled={revealed}
-                    style={actionBtn(revealed, chosen === a.value, after?.correct === a.value, a.color)}>
+                    style={actionBtn(revealed, chosen === a.value, after?.correct === a.value, a.color, isMobile)}>
                     {a.label}
                   </button>
                 ))}

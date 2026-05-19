@@ -2,6 +2,7 @@ import { useState } from "react";
 import { HAND_RANKINGS, COMMON_COMPARISONS } from "../data/handRankings.js";
 import TritonCard from "./TritonCard.jsx";
 import MiniHandPreview from "./MiniHandPreview.jsx";
+import useMediaQuery from "../lib/useMediaQuery.js";
 
 const RARITY_COLOR = {
   "Mythical":    "#9b5de5",
@@ -17,12 +18,13 @@ const RARITY_COLOR = {
 export default function HandsView() {
   const [selectedRank, setSelectedRank] = useState(1);
   const active = HAND_RANKINGS.find(h => h.rank === selectedRank);
+  const isMobile = useMediaQuery(768);
 
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "360px 1fr",
-      gap: 24,
+      gridTemplateColumns: isMobile ? "1fr" : "360px 1fr",
+      gap: isMobile ? 16 : 24,
       alignItems: "start",
     }}>
       {/* Hand list */}
@@ -80,7 +82,7 @@ export default function HandsView() {
                 {hand.name}
               </span>
               <span style={{ flexShrink: 0, opacity: isActive ? 1 : 0.85 }}>
-                <MiniHandPreview cards={hand.example} height={22}/>
+                <MiniHandPreview cards={hand.example} height={isMobile ? 18 : 22}/>
               </span>
             </button>
           );
@@ -92,7 +94,7 @@ export default function HandsView() {
         background: "rgba(10,24,22,0.6)",
         border: "1px solid rgba(232,227,211,0.1)",
         borderRadius: 12,
-        padding: 32,
+        padding: isMobile ? 18 : 32,
         maxWidth: 780,
       }}>
         <header style={{
@@ -144,7 +146,7 @@ export default function HandsView() {
           </div>
           <div style={{ display: "flex", gap: 4, justifyContent: "center", padding: "12px 0" }}>
             {active.example.map((card, i) => (
-              <TritonCard key={i} card={card} size={78}/>
+              <TritonCard key={i} card={card} size={isMobile ? 56 : 78}/>
             ))}
           </div>
         </div>
@@ -281,7 +283,7 @@ const statLabelStyle = {
   textTransform: "uppercase", opacity: 0.55,
 };
 const statValueStyle = {
-  fontFamily: "'Cormorant Garamond', serif",
-  fontSize: 22, color: "#d4a13b",
+  fontFamily: "'Inter', sans-serif",
+  fontSize: 20, fontWeight: 700, color: "#d4a13b",
   marginTop: 4,
 };

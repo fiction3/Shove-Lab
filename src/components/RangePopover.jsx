@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import RangeViewer from "./RangeViewer.jsx";
 import { ICM_STAGES } from "../data/icmStages.js";
+import useMediaQuery from "../lib/useMediaQuery.js";
 
 /**
  * Modal overlay showing the current mode's range with the user's current
@@ -9,6 +10,7 @@ import { ICM_STAGES } from "../data/icmStages.js";
  * Click outside, press Escape, or click the × to close.
  */
 export default function RangePopover({ open, onClose, mode, position, stage, customMult, highlightHand, villain }) {
+  const isMobile = useMediaQuery(768);
   // Escape key to close
   useEffect(() => {
     if (!open) return;
@@ -43,7 +45,7 @@ export default function RangePopover({ open, onClose, mode, position, stage, cus
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 24,
+        padding: isMobile ? 8 : 24,
         animation: "fadeIn 0.15s ease-out",
       }}>
       <div
@@ -52,7 +54,7 @@ export default function RangePopover({ open, onClose, mode, position, stage, cus
           background: "linear-gradient(180deg, rgba(15,40,32,0.95) 0%, rgba(8,22,18,0.98) 100%)",
           border: "1px solid rgba(212,161,59,0.3)",
           borderRadius: 14,
-          padding: 28,
+          padding: isMobile ? 16 : 28,
           maxWidth: 760,
           width: "100%",
           maxHeight: "90vh",

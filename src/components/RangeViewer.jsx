@@ -214,8 +214,9 @@ function AdviceTooltip({ hand, x, y, advice }) {
       fontFamily: "inherit",
     }}>
       <div style={{
-        fontFamily: "'Cormorant Garamond', serif",
-        fontSize: 18, fontWeight: 600,
+        fontFamily: "'Inter', sans-serif",
+        fontSize: 16, fontWeight: 700,
+        letterSpacing: "0.02em",
         color: "#d4a13b",
         marginBottom: 6,
         lineHeight: 1,

@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { DrillFrame, ChoiceButton, FeedbackBox, NextButton } from "./DrillShared.jsx";
 import TritonCard from "../TritonCard.jsx";
+import useMediaQuery from "../../lib/useMediaQuery.js";
 
 // Sklansky / Chen-style hand strength ordering for heads-up preflop.
 // We use this as the "truth" for the ranking drill. Higher index = stronger.
@@ -52,6 +53,7 @@ function handToCards(hand) {
  * Side-by-side card displays; user picks the favorite.
  */
 export default function HandRankingDrill({ onAnswer }) {
+  const isMobile = useMediaQuery(768);
   const [pair, setPair] = useState(randomPair);
   const [chosen, setChosen] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -120,14 +122,15 @@ export default function HandRankingDrill({ onAnswer }) {
                 transition: "all 0.15s",
               }}>
               <div style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 24, marginBottom: 12, color: "#d4a13b",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 22, fontWeight: 700, letterSpacing: "0.02em",
+                marginBottom: 12, color: "#d4a13b",
               }}>
                 {item.hand}
               </div>
               <div style={{ display: "flex", gap: 2, justifyContent: "center" }}>
-                <TritonCard card={item.cards[0]} size={70}/>
-                <TritonCard card={item.cards[1]} size={70}/>
+                <TritonCard card={item.cards[0]} size={isMobile ? 54 : 70}/>
+                <TritonCard card={item.cards[1]} size={isMobile ? 54 : 70}/>
               </div>
             </button>
           );

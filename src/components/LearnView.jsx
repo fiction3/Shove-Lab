@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LESSONS } from "../data/lessons.js";
+import useMediaQuery from "../lib/useMediaQuery.js";
 
 /**
  * Two-pane layout: lesson list on the left, selected lesson on the right.
@@ -9,12 +10,13 @@ import { LESSONS } from "../data/lessons.js";
 export default function LearnView({ onJumpToDrill }) {
   const [activeId, setActiveId] = useState(LESSONS[0].id);
   const active = LESSONS.find(l => l.id === activeId);
+  const isMobile = useMediaQuery(768);
 
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "260px 1fr",
-      gap: 24,
+      gridTemplateColumns: isMobile ? "1fr" : "260px 1fr",
+      gap: isMobile ? 16 : 24,
       alignItems: "start",
     }}>
       {/* Lesson list */}
@@ -23,8 +25,8 @@ export default function LearnView({ onJumpToDrill }) {
         border: "1px solid rgba(232,227,211,0.1)",
         borderRadius: 12,
         padding: 16,
-        position: "sticky",
-        top: 24,
+        position: isMobile ? "static" : "sticky",
+        top: isMobile ? "auto" : 24,
       }}>
         <div style={{
           fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase",
@@ -68,7 +70,7 @@ export default function LearnView({ onJumpToDrill }) {
         background: "rgba(10,24,22,0.6)",
         border: "1px solid rgba(232,227,211,0.1)",
         borderRadius: 12,
-        padding: 36,
+        padding: isMobile ? 18 : 36,
         maxWidth: 760,
       }}>
         <header style={{

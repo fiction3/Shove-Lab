@@ -3,6 +3,7 @@ import { MATCHUPS, getMatchupEquity } from "../../data/equityMatchups.js";
 import { gradeAnswer } from "../../lib/oddsCalc.js";
 import { DrillFrame, ChoiceButton, FeedbackBox, NextButton, HintBox } from "./DrillShared.jsx";
 import TritonCard from "../TritonCard.jsx";
+import useMediaQuery from "../../lib/useMediaQuery.js";
 
 const KEYS = Object.keys(MATCHUPS);
 
@@ -38,6 +39,7 @@ function makeChoices(trueEq) {
  * hero's equity percentage from 4 choices.
  */
 export default function HandVsHandDrill({ onAnswer }) {
+  const isMobile = useMediaQuery(768);
   const [matchKey, setMatchKey] = useState(randomMatchup);
   const [chosen, setChosen] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -78,8 +80,8 @@ export default function HandVsHandDrill({ onAnswer }) {
             Hero ({heroHand})
           </div>
           <div style={{ display: "flex", gap: 2 }}>
-            <TritonCard card={heroCards[0]} size={72}/>
-            <TritonCard card={heroCards[1]} size={72}/>
+            <TritonCard card={heroCards[0]} size={isMobile ? 54 : 72}/>
+            <TritonCard card={heroCards[1]} size={isMobile ? 54 : 72}/>
           </div>
         </div>
         <div style={{
@@ -96,8 +98,8 @@ export default function HandVsHandDrill({ onAnswer }) {
             Villain ({villainHand})
           </div>
           <div style={{ display: "flex", gap: 2 }}>
-            <TritonCard card={villainCards[0]} size={72}/>
-            <TritonCard card={villainCards[1]} size={72}/>
+            <TritonCard card={villainCards[0]} size={isMobile ? 54 : 72}/>
+            <TritonCard card={villainCards[1]} size={isMobile ? 54 : 72}/>
           </div>
         </div>
       </div>
