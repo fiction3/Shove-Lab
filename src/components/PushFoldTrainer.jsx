@@ -502,7 +502,7 @@ export default function PushFoldTrainer() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
                 <div>
                   <div style={{
-                    display: "flex", alignItems: "center", gap: 10,
+                    display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
                   }}>
                     <div style={{ fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", opacity: 0.5 }}>
                       Action
@@ -517,6 +517,18 @@ export default function PushFoldTrainer() {
                       fontWeight: 700,
                     }}>
                       Preflop
+                    </span>
+                    <span style={{
+                      fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase",
+                      padding: "2px 8px",
+                      background: "rgba(127,198,154,0.10)",
+                      border: "1px solid rgba(127,198,154,0.35)",
+                      borderRadius: 3,
+                      color: "#7fc69a",
+                      fontWeight: 700,
+                    }}
+                    title={POSITION_LABELS[position]}>
+                      You: {position}
                     </span>
                   </div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: isMobile ? 17 : 20, marginTop: 4 }}>
