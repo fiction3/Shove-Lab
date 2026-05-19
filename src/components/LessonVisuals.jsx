@@ -422,10 +422,10 @@ export function ButtonRotation() {
   ];
 
   return (
-    <VisualFrame caption="Each hand, the button shifts one seat to the left. Over four hands, every player takes a turn being the button, SB, and BB. The forced bets share evenly across the table.">
+    <VisualFrame caption="Each hand, the button shifts one seat clockwise. After enough hands, every player takes a turn at every role — so the forced bets share evenly across the table.">
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
         gap: 14,
       }}>
         {tables.map(t => <MiniRotationTable key={t.label} {...t}/>)}
@@ -435,13 +435,19 @@ export function ButtonRotation() {
 }
 
 function MiniRotationTable({ label, btnPlayer, sb, bb }) {
-  // 4 players at the cardinal points (N, E, S, W). Drawn in SVG.
+  // 4 seats laid out in a 3x3 grid: top, left, bottom, right around a central
+  // felt. Each seat is a colored disc with the player letter; the role label
+  // (BTN/SB/BB) sits below the disc as a colored chip.
   const players = ["A", "B", "C", "D"];
-  const positions = {
-    A: { x: 75, y: 18,  label: "above" }, // top
-    B: { x: 132, y: 75, label: "right" }, // right
-    C: { x: 75, y: 132, label: "below" }, // bottom
-    D: { x: 18, y: 75,  label: "left" },  // left
+  const positionStyle = (p) => {
+    // Map player letter to grid cell. A=top, B=right, C=bottom, D=left.
+    const map = {
+      A: { gridArea: "top" },
+      B: { gridArea: "right" },
+      C: { gridArea: "bottom" },
+      D: { gridArea: "left" },
+    };
+    return map[p];
   };
   const roleFor = (p) => {
     if (p === btnPlayer) return { tag: "BTN", color: "#d4a13b" };
@@ -455,52 +461,77 @@ function MiniRotationTable({ label, btnPlayer, sb, bb }) {
       <div style={{
         fontSize: 10, letterSpacing: "0.22em",
         textTransform: "uppercase", color: "#d4a13b",
-        fontWeight: 700, marginBottom: 8,
+        fontWeight: 700, marginBottom: 10,
       }}>
         {label}
       </div>
-      <svg viewBox="0 0 150 150" style={{ width: "100%", height: "auto", maxWidth: 150 }}>
-        {/* Felt */}
-        <ellipse cx="75" cy="75" rx="56" ry="40"
-          fill="rgba(20,55,40,0.5)" stroke="rgba(212,161,59,0.25)" strokeWidth="1.5"/>
-        {/* Players */}
+      <div style={{
+        display: "grid",
+        gridTemplateAreas: `
+          ".    top    .    "
+          "left center right"
+          ".    bottom .    "
+        `,
+        gridTemplateColumns: "1fr 1fr 1fr",
+        gridTemplateRows: "auto auto auto",
+        gap: 6,
+        maxWidth: 170,
+        margin: "0 auto",
+        alignItems: "center",
+        justifyItems: "center",
+      }}>
+        {/* Felt circle in the centre */}
+        <div style={{
+          gridArea: "center",
+          width: 56, height: 56,
+          borderRadius: "50%",
+          background: "rgba(20,55,40,0.5)",
+          border: "1px solid rgba(212,161,59,0.25)",
+          position: "relative",
+        }}>
+          {/* Rotation arrow inside the felt */}
+          <svg viewBox="0 0 40 40" style={{
+            position: "absolute", inset: 4,
+            width: "calc(100% - 8px)", height: "calc(100% - 8px)",
+            opacity: 0.45,
+          }}>
+            <path d="M 12 20 A 8 8 0 1 1 28 20"
+              fill="none" stroke="#d4a13b" strokeWidth="1.5"/>
+            <polygon points="26,17 30,20 26,23" fill="#d4a13b"/>
+          </svg>
+        </div>
+        {/* Seats */}
         {players.map(p => {
-          const pos = positions[p];
           const role = roleFor(p);
-          const isButton = p === btnPlayer;
           return (
-            <g key={p}>
-              <circle cx={pos.x} cy={pos.y} r="14"
-                fill={role ? role.color : "rgba(232,227,211,0.15)"}
-                stroke={isButton ? "#fafaf7" : "transparent"}
-                strokeWidth={isButton ? "2" : "0"}/>
-              <text x={pos.x} y={pos.y + 4} textAnchor="middle"
-                fontSize="11" fontWeight="700"
-                fill={role ? "#0a1816" : "#e8e3d3"}
-                fontFamily="'Inter', sans-serif">
+            <div key={p} style={{
+              ...positionStyle(p),
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%",
+                background: role ? role.color : "rgba(232,227,211,0.18)",
+                color: role ? "#0a1816" : "#e8e3d3",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 12, fontWeight: 700,
+                fontFamily: "'Inter', sans-serif",
+                border: role && role.tag === "BTN" ? "2px solid #fafaf7" : "none",
+              }}>
                 {p}
-              </text>
+              </div>
               {role && (
-                <text x={pos.x} y={pos.y + (pos.label === "above" ? -20 : pos.label === "below" ? 30 : 4)}
-                  dx={pos.label === "left" ? -22 : pos.label === "right" ? 22 : 0}
-                  textAnchor="middle"
-                  fontSize="8" fontWeight="700"
-                  fill={role.color}
-                  fontFamily="'Inter', sans-serif"
-                  letterSpacing="0.5">
+                <div style={{
+                  fontSize: 8, letterSpacing: "0.15em",
+                  fontWeight: 700, color: role.color,
+                  fontFamily: "'Inter', sans-serif",
+                }}>
                   {role.tag}
-                </text>
+                </div>
               )}
-            </g>
+            </div>
           );
         })}
-        {/* Rotation arrow (in the centre) */}
-        <g opacity="0.4">
-          <path d="M 60 75 A 15 15 0 1 1 90 75"
-            fill="none" stroke="#d4a13b" strokeWidth="1.5"/>
-          <polygon points="88,72 94,75 88,78" fill="#d4a13b"/>
-        </g>
-      </svg>
+      </div>
     </div>
   );
 }
