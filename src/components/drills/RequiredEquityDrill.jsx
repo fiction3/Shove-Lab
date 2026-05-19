@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { potOdds, gradeAnswer } from "../../lib/oddsCalc.js";
-import { DrillFrame, ChoiceButton, FeedbackBox, NextButton } from "./DrillShared.jsx";
+import { DrillFrame, ChoiceButton, FeedbackBox, NextButton, HintBox } from "./DrillShared.jsx";
 
 function randomSpot() {
   const pot = [3, 4, 6, 8, 10, 12, 15, 20, 25, 30][Math.floor(Math.random() * 10)];
@@ -74,6 +74,13 @@ export default function RequiredEquityDrill({ onAnswer }) {
         ))}
       </div>
 
+      {!revealed && (
+        <HintBox>
+          <strong>Required equity = (your call) / (pot after your call)</strong>.<br/>
+          The "pot after your call" includes the original pot, villain's bet, and your call. Smaller bets relative to the pot mean you need less equity.
+        </HintBox>
+      )}
+
       {revealed && (
         <>
           <FeedbackBox
@@ -85,6 +92,26 @@ export default function RequiredEquityDrill({ onAnswer }) {
                 You're calling {spot.bet}bb into a final pot of {totalAfter}bb, so required equity = {spot.bet}/{totalAfter} = <strong>{requiredEquity}%</strong>. Pot odds: {ratio}.
               </>
             }
+            mathWalkthrough={[
+              {
+                label: "Step 1 — What's the final pot after your call?",
+                formula: `pot + villain bet + your call = ${spot.pot} + ${spot.bet} + ${spot.bet}`,
+                value: `= ${totalAfter}bb`,
+                note: "All three contributions are now in the pot.",
+              },
+              {
+                label: "Step 2 — Required equity is your call as a fraction of that final pot",
+                formula: `${spot.bet} / ${totalAfter}`,
+                value: `= ${requiredEquity}%`,
+                note: "If your hand has at least this much equity vs villain's range, calling is +EV.",
+              },
+              {
+                label: "Step 3 — Sanity-check via pot odds",
+                formula: `pot odds = ${ratio}`,
+                value: null,
+                note: `${ratio} odds = ${requiredEquity}% required equity. The two are the same thing in different units.`,
+              },
+            ]}
           />
           <NextButton onClick={next}/>
         </>

@@ -167,6 +167,9 @@ export default function PushFoldTrainer() {
 
   const before = useMemo(() => {
     if (mode === "push") return pushBefore(position, code, stack, seatCount, stage, customMults);
+    // For call/reshove modes, wait for villain to be set before computing reasoning.
+    // (Brief state-transition window where mode flips but villain hasn't been re-rolled yet.)
+    if (!villain) return null;
     if (mode === "call") return callBefore(position, villain, code, stack, seatCount, stage, customMults);
     return reshoveBefore(position, villain, code, stack, seatCount, stage, customMults);
   }, [mode, position, villain, code, stack, seatCount, stage, customMults]);
@@ -174,6 +177,7 @@ export default function PushFoldTrainer() {
   const after = useMemo(() => {
     if (!revealed || !chosen) return null;
     if (mode === "push") return pushAfter(position, code, stack, chosen, stage, customMults);
+    if (!villain) return null;
     if (mode === "call") return callAfter(position, villain, code, stack, chosen, stage, customMults);
     return reshoveAfter(position, villain, code, stack, chosen, stage, customMults);
   }, [mode, revealed, chosen, position, villain, code, stack, stage, customMults]);
@@ -372,7 +376,7 @@ export default function PushFoldTrainer() {
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: "#d4a13b" }}>
                   {mode === "push"
                     ? POSITION_LABELS[position]
-                    : `${POSITION_LABELS[position]} vs ${villain} ${mode === "call" ? "shove" : "raise"}`}
+                    : `${POSITION_LABELS[position]} vs ${villain || "villain"} ${mode === "call" ? "shove" : "raise"}`}
                 </div>
               </div>
             </aside>
@@ -396,8 +400,8 @@ export default function PushFoldTrainer() {
                   </div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, marginTop: 4 }}>
                     {mode === "push" ? "Folded to you"
-                      : mode === "call" ? `${villain} shoves all-in`
-                      : `${villain} min-raises to 2bb`}
+                      : mode === "call" ? (villain ? `${villain} shoves all-in` : "Villain shoves all-in")
+                      : (villain ? `${villain} min-raises to 2bb` : "Villain min-raises to 2bb")}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -473,6 +477,7 @@ export default function PushFoldTrainer() {
                 fontSize: 13, lineHeight: 1.6,
               }}>
                 {!revealed ? (
+                  before ? (
                   <>
                     <div style={subLabel}>Before you decide</div>
                     <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, margin: "0 0 12px 0", lineHeight: 1.3 }}>
@@ -509,6 +514,7 @@ export default function PushFoldTrainer() {
                     )}
                     <p style={questionStyle}>{before.question}</p>
                   </>
+                  ) : null
                 ) : after && (
                   <>
                     <div style={subLabel}>After the decision</div>

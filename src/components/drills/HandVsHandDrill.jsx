@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { MATCHUPS, getMatchupEquity } from "../../data/equityMatchups.js";
 import { gradeAnswer } from "../../lib/oddsCalc.js";
-import { DrillFrame, ChoiceButton, FeedbackBox, NextButton } from "./DrillShared.jsx";
+import { DrillFrame, ChoiceButton, FeedbackBox, NextButton, HintBox } from "./DrillShared.jsx";
 import TritonCard from "../TritonCard.jsx";
 
 const KEYS = Object.keys(MATCHUPS);
@@ -115,6 +115,16 @@ export default function HandVsHandDrill({ onAnswer }) {
             onClick={() => pick(c)}/>
         ))}
       </div>
+
+      {!revealed && (
+        <HintBox>
+          <strong>Four key matchup shapes:</strong><br/>
+          • Pair over pair (AA vs KK): ~80% / 20%<br/>
+          • Overpair vs two overcards (TT vs AK): ~55% / 45% — the classic race<br/>
+          • Pair vs two undercards (88 vs 76s): ~80% / 20%<br/>
+          • Dominated ace (AK vs AQ): ~73% / 27%
+        </HintBox>
+      )}
 
       {revealed && (
         <>

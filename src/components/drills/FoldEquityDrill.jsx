@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { foldEquityBreakeven, gradeAnswer } from "../../lib/oddsCalc.js";
-import { DrillFrame, NumberInput, FeedbackBox, NextButton } from "./DrillShared.jsx";
+import { DrillFrame, NumberInput, FeedbackBox, NextButton, HintBox } from "./DrillShared.jsx";
 
 function randomSpot() {
   const risk = [6, 8, 10, 12, 15, 18, 20][Math.floor(Math.random() * 7)];
@@ -68,6 +68,13 @@ export default function FoldEquityDrill({ onAnswer }) {
         )}
       </div>
 
+      {!revealed && (
+        <HintBox>
+          <strong>EV(shove) = f×P + (1−f)×(e×(R+P) − R)</strong>, where R = your risk, P = dead money, f = fold frequency, e = equity-when-called.<br/>
+          Set EV = 0 and solve for e. Higher fold frequency means lower required equity (sometimes shockingly low — that's the magic of fold equity).
+        </HintBox>
+      )}
+
       {revealed && (
         <>
           <FeedbackBox
@@ -76,13 +83,32 @@ export default function FoldEquityDrill({ onAnswer }) {
             suffix="%"
             explanation={
               <>
-                Math: EV = 0.{spot.foldFreq.toString().padStart(2, "0")} × {spot.pot} + 0.{(100 - spot.foldFreq).toString().padStart(2, "0")} × (e × {spot.risk + spot.pot} − {spot.risk}).
-                Solving for e gives <strong>{breakeven}%</strong>.
+                Solving the breakeven equation gives <strong>{breakeven}%</strong> equity-when-called.
                 {breakeven < 20 && " That's very low — high fold equity makes wide shoves print."}
                 {breakeven >= 20 && breakeven < 35 && " Moderate — you still need a real hand when called."}
                 {breakeven >= 35 && " High — limited fold equity means you need a strong hand."}
               </>
             }
+            mathWalkthrough={[
+              {
+                label: "Step 1 — Write the EV equation",
+                formula: `EV = f × P + (1−f) × (e × (R+P) − R)`,
+                value: null,
+                note: `f = fold freq, P = dead money already in pot (here ${spot.pot}bb), R = your risk (${spot.risk}bb), e = your equity when called.`,
+              },
+              {
+                label: "Step 2 — Plug in the known values",
+                formula: `EV = ${(spot.foldFreq / 100).toFixed(2)} × ${spot.pot} + ${((100 - spot.foldFreq) / 100).toFixed(2)} × (e × ${spot.risk + spot.pot} − ${spot.risk})`,
+                value: null,
+                note: "We know fold frequency, pot, and risk. Only e (your equity when called) is unknown.",
+              },
+              {
+                label: "Step 3 — Set EV = 0 and solve for e",
+                formula: `0 = ${((spot.foldFreq / 100) * spot.pot).toFixed(2)} + ${((100 - spot.foldFreq) / 100).toFixed(2)} × (e × ${spot.risk + spot.pot} − ${spot.risk})`,
+                value: `→ e = ${breakeven}%`,
+                note: "Below this, the shove loses on average. Above it, the shove prints.",
+              },
+            ]}
           />
           <NextButton onClick={next}/>
         </>

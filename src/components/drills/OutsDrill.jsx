@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { equityFromOuts, gradeAnswer } from "../../lib/oddsCalc.js";
-import { DrillFrame, NumberInput, FeedbackBox, NextButton } from "./DrillShared.jsx";
+import { DrillFrame, NumberInput, FeedbackBox, NextButton, HintBox } from "./DrillShared.jsx";
 
 const DRAW_TYPES = [
   { name: "Flush draw", outs: 9, explanation: "9 cards of your suit remaining" },
@@ -89,6 +89,10 @@ export default function OutsDrill({ onAnswer }) {
               Next →
             </button>
           </div>
+          <HintBox>
+            <strong>An "out" is any unseen card that improves your hand to a likely winner.</strong>
+            Flush draws have 9 outs (13 of the suit minus 4 you can see). Open-enders have 8. Gutshots have 4. Combine when you have multiple draws, but subtract overlaps (cards that complete more than one draw).
+          </HintBox>
         </>
       )}
 
@@ -110,18 +114,25 @@ export default function OutsDrill({ onAnswer }) {
           </p>
 
           {stage === "equity" && (
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <NumberInput value={equityAnswer} onChange={setEquityAnswer}
-                onSubmit={submitEquity} placeholder="e.g. 36" suffix="%"/>
-              <button onClick={submitEquity} style={{
-                background: "#d4a13b", color: "#0a1816", border: "none",
-                padding: "12px 22px", borderRadius: 6, cursor: "pointer",
-                fontSize: 12, letterSpacing: "0.18em",
-                textTransform: "uppercase", fontWeight: 700,
-              }}>
-                Submit
-              </button>
-            </div>
+            <>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <NumberInput value={equityAnswer} onChange={setEquityAnswer}
+                  onSubmit={submitEquity} placeholder="e.g. 36" suffix="%"/>
+                <button onClick={submitEquity} style={{
+                  background: "#d4a13b", color: "#0a1816", border: "none",
+                  padding: "12px 22px", borderRadius: 6, cursor: "pointer",
+                  fontSize: 12, letterSpacing: "0.18em",
+                  textTransform: "uppercase", fontWeight: 700,
+                }}>
+                  Submit
+                </button>
+              </div>
+              <HintBox>
+                <strong>Rule of 4 and 2:</strong> On the flop (two cards to come), equity ≈ outs × 4.
+                On the turn (one card to come), equity ≈ outs × 2.
+                It's an approximation — slightly overestimates for 12+ outs.
+              </HintBox>
+            </>
           )}
 
           {stage === "done" && (
@@ -136,6 +147,19 @@ export default function OutsDrill({ onAnswer }) {
                     Exact: <strong>{eqInfo.exact}%</strong>.
                     The rule {eqInfo.error > 0 ? "overestimates" : "underestimates"} by {Math.abs(eqInfo.error)}% here.
                   </>
+                }
+                mathWalkthrough={
+                  spot.street === "flop"
+                    ? [
+                        { label: "Rule of 4 (flop → river)", formula: `outs × 4 = ${trueOuts} × 4`, value: `≈ ${eqInfo.approx}%`, note: "Quick mental shortcut, good within ~2% for under 12 outs." },
+                        { label: "Exact formula", formula: `1 − C(47−outs, 2) / C(47, 2)`, value: `= ${eqInfo.exact}%`, note: "47 unseen cards after the flop. C(n,2) is 'n choose 2', counting how many two-card combinations miss your outs." },
+                        { label: "Discrepancy", formula: `${eqInfo.approx} − ${eqInfo.exact}`, value: `= ${eqInfo.error}%`, note: eqInfo.error > 0 ? "Rule overestimates here — typical when out count is high." : "Rule underestimates slightly." },
+                      ]
+                    : [
+                        { label: "Rule of 2 (turn → river)", formula: `outs × 2 = ${trueOuts} × 2`, value: `≈ ${eqInfo.approx}%`, note: "On the turn, only one card is left to come." },
+                        { label: "Exact formula", formula: `outs / 46`, value: `= ${eqInfo.exact}%`, note: "46 unseen cards remain after the turn." },
+                        { label: "Discrepancy", formula: `${eqInfo.approx} − ${eqInfo.exact}`, value: `= ${eqInfo.error}%`, note: "Rule of 2 is very accurate — usually within ~0.5%." },
+                      ]
                 }
               />
               <NextButton onClick={next}/>

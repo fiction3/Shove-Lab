@@ -1,88 +1,132 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { potOdds, gradeAnswer } from "../../lib/oddsCalc.js";
-import { DrillFrame, NumberInput, FeedbackBox, NextButton } from "./DrillShared.jsx";
+import { potOdds, CANONICAL_RATIOS } from "../../lib/oddsCalc.js";
+import { DrillFrame, ChoiceButton, FeedbackBox, NextButton, HintBox } from "./DrillShared.jsx";
 
+/**
+ * Generate a spot whose true pot-odds ratio snaps neatly to one of our
+ * canonical labels (2:1, 3:1, etc.). We choose a target ratio and back-solve
+ * the bet size so the math is clean — better drill experience than random
+ * fractions of pot.
+ */
 function randomSpot() {
-  // Realistic-ish pot/bet sizings. Pot in bb (3-30), bet 25%-150% of pot.
-  const pot = [3, 4, 6, 8, 10, 12, 15, 20, 25, 30][Math.floor(Math.random() * 10)];
-  const betFractions = [0.25, 0.33, 0.5, 0.66, 0.75, 1.0, 1.25, 1.5];
-  const f = betFractions[Math.floor(Math.random() * betFractions.length)];
-  const bet = Math.round(pot * f * 2) / 2; // round to nearest 0.5
-  return { pot, bet };
+  const target = CANONICAL_RATIOS[Math.floor(Math.random() * CANONICAL_RATIOS.length)];
+  // "Pot is P, villain bets B" → after villain's bet, total pot = P + B and the call is B.
+  // Pot odds ratio = (P + B) / B   ⇒   P = B * (ratio − 1).
+  const bet = [2, 3, 4, 5, 6, 8, 10][Math.floor(Math.random() * 7)];
+  const pot = +(bet * (target.value - 1)).toFixed(1);
+  if (pot < 2) return randomSpot(); // avoid trivially small pots
+  return { pot, bet, targetRatio: target };
+}
+
+function makeChoices(targetRatio) {
+  // Pick the correct ratio plus three nearby distractors.
+  const idx = CANONICAL_RATIOS.findIndex(r => r.value === targetRatio.value);
+  const pool = new Set([targetRatio.label]);
+  let offset = 1;
+  while (pool.size < 4 && offset < 10) {
+    if (CANONICAL_RATIOS[idx - offset]) pool.add(CANONICAL_RATIOS[idx - offset].label);
+    if (CANONICAL_RATIOS[idx + offset] && pool.size < 4) pool.add(CANONICAL_RATIOS[idx + offset].label);
+    offset++;
+  }
+  return CANONICAL_RATIOS
+    .filter(r => pool.has(r.label))
+    .map(r => r.label);
 }
 
 /**
- * Drill: given pot + villain bet, what required equity % do I need to call?
+ * Pot Odds Drill: given pot + villain bet, identify the ratio the pot
+ * is offering. Answer is a RATIO (e.g. "3:1"), not a percentage.
  */
 export default function PotOddsDrill({ onAnswer }) {
   const [spot, setSpot] = useState(randomSpot);
-  const [answer, setAnswer] = useState("");
+  const [chosen, setChosen] = useState(null);
   const [revealed, setRevealed] = useState(false);
   const startTime = useRef(Date.now());
-
-  // Reset timer on new spot
   useEffect(() => { startTime.current = Date.now(); }, [spot]);
 
-  const { requiredEquity, ratio, totalAfter } = useMemo(
+  const { requiredEquity } = useMemo(
     () => potOdds(spot.pot + spot.bet, spot.bet),
     [spot]
   );
+  const correctLabel = spot.targetRatio.label;
+  const choices = useMemo(() => makeChoices(spot.targetRatio), [spot]);
 
-  function submit() {
+  function pick(label) {
     if (revealed) return;
-    const userVal = parseFloat(answer);
-    if (isNaN(userVal)) return;
-    const grade = gradeAnswer(userVal, requiredEquity, 1, 4);
-    const timeMs = Date.now() - startTime.current;
+    setChosen(label);
     setRevealed(true);
-    onAnswer?.({ drill: "pot-odds", grade, timeMs, userValue: userVal, trueValue: requiredEquity });
+    const grade = label === correctLabel ? "exact" : "wrong";
+    const timeMs = Date.now() - startTime.current;
+    onAnswer?.({ drill: "pot-odds", grade, timeMs, userValue: label, trueValue: correctLabel });
   }
 
   function next() {
-    setSpot(randomSpot());
-    setAnswer("");
-    setRevealed(false);
+    setSpot(randomSpot()); setChosen(null); setRevealed(false);
   }
 
-  const grade = revealed
-    ? gradeAnswer(parseFloat(answer), requiredEquity, 1, 4)
-    : null;
+  const grade = revealed ? (chosen === correctLabel ? "exact" : "wrong") : null;
+
+  const walkthrough = [
+    {
+      label: "Step 1 — What's the pot when you have to call?",
+      formula: `pot + villain's bet = ${spot.pot} + ${spot.bet}`,
+      value: `= ${spot.pot + spot.bet}bb`,
+      note: "Villain's bet is now part of the pot; you'd be calling INTO this total.",
+    },
+    {
+      label: "Step 2 — Express it as a ratio (pot : your call)",
+      formula: `${spot.pot + spot.bet} : ${spot.bet}`,
+      value: `= ${(spot.pot + spot.bet) / spot.bet}:1`,
+      note: "Divide both sides by your call amount to put it in X:1 form.",
+    },
+    {
+      label: "Step 3 — These are the pot odds",
+      formula: `pot odds = ${correctLabel}`,
+      value: null,
+      note: `As a percentage: required equity = (your call) / (pot after your call) = ${spot.bet} / ${spot.pot + 2 * spot.bet} = ${requiredEquity}%.`,
+    },
+  ];
 
   return (
-    <DrillFrame title={`Pot is ${spot.pot}bb. Villain bets ${spot.bet}bb.`}
-      subtitle="Pot odds">
+    <DrillFrame
+      title={`Pot is ${spot.pot}bb. Villain bets ${spot.bet}bb.`}
+      subtitle="Pot odds"
+    >
       <p style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.85, margin: "0 0 18px 0" }}>
-        What's the required equity (%) to make calling break even?
+        What odds is the pot offering you?
       </p>
-
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <NumberInput value={answer} onChange={setAnswer} onSubmit={submit}
-          placeholder="e.g. 25" suffix="%" disabled={revealed}/>
-        {!revealed && (
-          <button onClick={submit} style={{
-            background: "#d4a13b", color: "#0a1816", border: "none",
-            padding: "12px 22px", borderRadius: 6, cursor: "pointer",
-            fontSize: 12, letterSpacing: "0.18em",
-            textTransform: "uppercase", fontWeight: 700,
-          }}>
-            Submit
-          </button>
-        )}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+        {choices.map(label => (
+          <ChoiceButton key={label}
+            label={label}
+            isCorrect={label === correctLabel}
+            isChosen={label === chosen}
+            revealed={revealed}
+            onClick={() => pick(label)}/>
+        ))}
       </div>
+
+      {!revealed && (
+        <HintBox>
+          <strong>Pot odds = (current pot including villain's bet) : (your call amount)</strong>.<br/>
+          Add villain's bet to the existing pot, then divide by your call to get the ratio.
+          A ratio of <strong>X:1</strong> means you're risking 1 unit to win X. Higher ratio = better price.
+        </HintBox>
+      )}
 
       {revealed && (
         <>
           <FeedbackBox
             grade={grade}
-            trueValue={requiredEquity}
-            suffix="%"
+            trueValue={correctLabel}
+            suffix=""
             explanation={
               <>
-                Math: you're calling <strong>{spot.bet}bb</strong> into a pot that becomes <strong>{totalAfter}bb</strong> after your call.
-                Required equity = {spot.bet}/{totalAfter} = <strong>{requiredEquity}%</strong>.
-                The pot is offering you <strong>{ratio}</strong>.
+                You're calling <strong>{spot.bet}bb</strong> to win a pot of <strong>{spot.pot + spot.bet}bb</strong>.
+                Ratio: <strong>{correctLabel}</strong>. As a percentage that's <strong>{requiredEquity}%</strong> required equity to break even.
               </>
             }
+            mathWalkthrough={walkthrough}
           />
           <NextButton onClick={next}/>
         </>

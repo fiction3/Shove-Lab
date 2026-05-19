@@ -15,7 +15,36 @@ export function potOdds(potBeforeCall, toCall) {
   // Ratio in "X:1" form, rounded
   const r = potBeforeCall / toCall;
   const ratio = `${r.toFixed(r >= 5 ? 0 : 1)}:1`;
-  return { ratio, requiredEquity: +requiredEquity.toFixed(1), totalAfter };
+  return { ratio, requiredEquity: +requiredEquity.toFixed(1), totalAfter, rawRatio: r };
+}
+
+/**
+ * Common canonical pot-odds ratios that real poker players think in.
+ * We snap quiz answers to these so the multiple choice feels natural.
+ */
+export const CANONICAL_RATIOS = [
+  { label: "1.5:1", value: 1.5 },
+  { label: "2:1",   value: 2 },
+  { label: "2.5:1", value: 2.5 },
+  { label: "3:1",   value: 3 },
+  { label: "4:1",   value: 4 },
+  { label: "5:1",   value: 5 },
+  { label: "6:1",   value: 6 },
+  { label: "8:1",   value: 8 },
+  { label: "10:1",  value: 10 },
+];
+
+/**
+ * Given a raw ratio (e.g. 3.7), return the closest canonical ratio object.
+ */
+export function snapToCanonicalRatio(rawRatio) {
+  let best = CANONICAL_RATIOS[0];
+  let bestDist = Math.abs(rawRatio - best.value);
+  for (const r of CANONICAL_RATIOS) {
+    const d = Math.abs(rawRatio - r.value);
+    if (d < bestDist) { best = r; bestDist = d; }
+  }
+  return best;
 }
 
 /**

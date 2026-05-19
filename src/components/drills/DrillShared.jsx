@@ -1,5 +1,7 @@
 // Shared subcomponents used inside every drill type.
 
+import { useState } from "react";
+
 export function DrillFrame({ children, title, subtitle }) {
   return (
     <div style={{
@@ -92,7 +94,8 @@ export function NumberInput({ value, onChange, onSubmit, placeholder, suffix, di
   );
 }
 
-export function FeedbackBox({ grade, trueValue, explanation, suffix }) {
+export function FeedbackBox({ grade, trueValue, explanation, suffix, mathWalkthrough }) {
+  const [showMath, setShowMath] = useState(false);
   const color = grade === "exact" ? "#7fc69a"
               : grade === "close" ? "#d4a13b"
               : "#e07a5f";
@@ -123,6 +126,109 @@ export function FeedbackBox({ grade, trueValue, explanation, suffix }) {
       {explanation && (
         <div style={{ fontSize: 13, lineHeight: 1.55, opacity: 0.88 }}>
           {explanation}
+        </div>
+      )}
+      {mathWalkthrough && (
+        <>
+          <button onClick={() => setShowMath(s => !s)} style={{
+            marginTop: 14, background: "transparent",
+            color: "#d4a13b", border: "1px solid rgba(212,161,59,0.4)",
+            borderRadius: 4, padding: "6px 12px", cursor: "pointer",
+            fontSize: 11, letterSpacing: "0.15em",
+            textTransform: "uppercase", fontWeight: 600,
+            fontFamily: "inherit",
+          }}>
+            {showMath ? "Hide math ↑" : "Show full math ↓"}
+          </button>
+          {showMath && (
+            <MathPanel walkthrough={mathWalkthrough}/>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Renders a list of step objects:
+ *   { label: "Step 1: ...", formula: "x = a/b", value: "= 0.25", note: "..." }
+ * The `formula` and `value` are rendered in monospace; `label` and `note` are prose.
+ */
+function MathPanel({ walkthrough }) {
+  return (
+    <div style={{
+      marginTop: 14, padding: "14px 16px",
+      background: "rgba(0,0,0,0.3)",
+      borderRadius: 4,
+      borderLeft: "2px solid rgba(212,161,59,0.5)",
+    }}>
+      <div style={{
+        fontSize: 10, letterSpacing: "0.22em",
+        textTransform: "uppercase", opacity: 0.55,
+        marginBottom: 10, color: "#d4a13b",
+      }}>
+        Worked solution
+      </div>
+      {walkthrough.map((step, i) => (
+        <div key={i} style={{ marginBottom: i < walkthrough.length - 1 ? 14 : 0 }}>
+          {step.label && (
+            <div style={{ fontSize: 13, marginBottom: 4, opacity: 0.9 }}>
+              <strong style={{ color: "#d4a13b" }}>{step.label}</strong>
+            </div>
+          )}
+          {step.formula && (
+            <div style={{
+              fontFamily: "'JetBrains Mono', 'Menlo', 'Courier New', monospace",
+              fontSize: 13, padding: "6px 10px",
+              background: "rgba(0,0,0,0.3)", borderRadius: 3,
+              color: "#e8e3d3", overflowX: "auto",
+            }}>
+              {step.formula}
+              {step.value && (
+                <span style={{ color: "#7fc69a", marginLeft: 8 }}>
+                  {step.value}
+                </span>
+              )}
+            </div>
+          )}
+          {step.note && (
+            <div style={{ fontSize: 12, marginTop: 4, opacity: 0.7, fontStyle: "italic" }}>
+              {step.note}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Pre-answer hint. Shows a formula/concept reminder without revealing the answer.
+ * Collapsed by default; click to expand.
+ */
+export function HintBox({ children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: 14 }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        background: "transparent", color: "rgba(232,227,211,0.65)",
+        border: "1px solid rgba(232,227,211,0.2)", borderRadius: 4,
+        padding: "6px 12px", cursor: "pointer",
+        fontSize: 11, letterSpacing: "0.15em",
+        textTransform: "uppercase", fontWeight: 500,
+        fontFamily: "inherit",
+      }}>
+        {open ? "Hide hint ↑" : "Show hint ↓"}
+      </button>
+      {open && (
+        <div style={{
+          marginTop: 10, padding: "12px 14px",
+          background: "rgba(232,227,211,0.04)",
+          borderLeft: "2px solid rgba(232,227,211,0.25)",
+          borderRadius: 4, fontSize: 13, lineHeight: 1.55,
+          opacity: 0.92,
+        }}>
+          {children}
         </div>
       )}
     </div>
