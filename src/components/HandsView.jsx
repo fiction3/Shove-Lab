@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { HAND_RANKINGS, COMMON_COMPARISONS } from "../data/handRankings.js";
 import TritonCard from "./TritonCard.jsx";
+import MiniHandPreview from "./MiniHandPreview.jsx";
 
 const RARITY_COLOR = {
   "Mythical":    "#9b5de5",
@@ -20,7 +21,7 @@ export default function HandsView() {
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "300px 1fr",
+      gridTemplateColumns: "360px 1fr",
       gap: 24,
       alignItems: "start",
     }}>
@@ -51,24 +52,35 @@ export default function HandsView() {
                 color: isActive ? "#d4a13b" : "#e8e3d3",
                 border: "none",
                 borderLeft: `2px solid ${isActive ? "#d4a13b" : "transparent"}`,
-                padding: "10px 14px",
+                padding: "10px 12px",
                 cursor: "pointer",
                 fontFamily: "inherit",
-                fontSize: 14,
+                fontSize: 13,
                 marginBottom: 2,
-                display: "flex", alignItems: "center", gap: 12,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
               }}
             >
               <span style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 22, fontWeight: 600,
+                fontSize: 20, fontWeight: 600,
                 color: isActive ? "#d4a13b" : "rgba(232,227,211,0.4)",
-                width: 28, textAlign: "right",
+                width: 18, textAlign: "right", flexShrink: 0,
               }}>
                 {hand.rank}
               </span>
-              <span style={{ fontWeight: isActive ? 600 : 500 }}>
+              <span style={{
+                fontWeight: isActive ? 600 : 500,
+                flex: 1,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}>
                 {hand.name}
+              </span>
+              <span style={{ flexShrink: 0, opacity: isActive ? 1 : 0.85 }}>
+                <MiniHandPreview cards={hand.example} height={22}/>
               </span>
             </button>
           );
