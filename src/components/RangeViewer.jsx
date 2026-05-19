@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RANKS } from "../lib/handUtils.js";
 import { getMaxPushBB, getMaxCallBB, getMaxReshoveBB } from "../lib/decisionLogic.js";
 import { getRfiFrequency } from "../data/rfiRanges.js";
@@ -113,7 +113,6 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
     const rect = e.currentTarget.getBoundingClientRect();
     setHovered({
       hand,
-      // Anchor below the cell, centered horizontally
       x: rect.left + rect.width / 2,
       y: rect.bottom + 8,
     });
@@ -121,10 +120,22 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
   function hideTooltip() {
     setHovered(null);
   }
+
+  // Mouse hover (desktop only). On touch devices, browsers simulate a brief
+  // mouseenter on tap which we don't want — so we ignore the simulated event
+  // by checking the pointerType in the preceding onPointerEnter.
+  const lastPointerWasTouch = useRef(false);
+  function handlePointerEnter(e, hand) {
+    lastPointerWasTouch.current = e.pointerType === "touch" || e.pointerType === "pen";
+    if (lastPointerWasTouch.current) return; // touch is handled by onClick
+    showTooltip(e, hand);
+  }
+  function handleMouseLeave() {
+    if (lastPointerWasTouch.current) return; // touch shouldn't dismiss on "leave"
+    hideTooltip();
+  }
   function handleCellClick(e, hand) {
-    // On touch devices, a tap shows tooltip; tapping the same cell dismisses it.
-    // We stopPropagation so the document-level click handler doesn't immediately
-    // hide what we just opened.
+    // Tap / click: toggle the tooltip for this cell.
     e.stopPropagation();
     if (hovered?.hand === hand) hideTooltip();
     else showTooltip(e, hand);
@@ -151,8 +162,8 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
           const isHighlighted = hand === highlightHand;
           return (
             <div key={`${i}-${j}`}
-              onMouseEnter={e => showTooltip(e, hand)}
-              onMouseLeave={hideTooltip}
+              onPointerEnter={e => handlePointerEnter(e, hand)}
+              onMouseLeave={handleMouseLeave}
               onClick={e => handleCellClick(e, hand)}
               style={{
                 background: colorFor(max),
