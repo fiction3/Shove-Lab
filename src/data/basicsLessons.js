@@ -46,6 +46,9 @@ export const BASICS_LESSONS = [
       { type: "heading", text: "Showdown" },
       { type: "prose", text: "If two or more players are still in the hand after the river betting, they show their cards. Whoever has the best five-card hand wins the pot." },
       { type: "prose", text: "Most of the time, hands don't actually reach showdown. Someone bets aggressively enough that everyone else folds, and they win the pot without ever showing their cards. This is important — it means you can win pots without the best hand if you play well." },
+      { type: "heading", text: "The full rhythm" },
+      { type: "prose", text: "Here's the whole cycle in one picture. Notice how betting alternates with new cards — that's the rhythm of every hand of poker." },
+      { type: "visual", visual: "betting-flow" },
     ],
   },
 
@@ -68,6 +71,7 @@ export const BASICS_LESSONS = [
         "Everyone else acts after them, and decides whether to fold, call (match the bet), or raise (make it bigger)",
       ]},
       { type: "prose", text: "These are the seats immediately to the left of the dealer. After each hand, the position of the dealer rotates one seat to the left — so over time, every player takes a turn being the dealer, then small blind, then big blind. This makes the forced-bet burden share evenly across the table." },
+      { type: "visual", visual: "button-rotation" },
       { type: "heading", text: "The Button" },
       { type: "prose", text: "The \"button\" is a small plastic disk that marks who the dealer would be (in casino games, an actual dealer deals; the button just tracks the rotation). Players to the left of the button act first. The button is the strongest seat at the table because the player on the button acts last in every round of betting after preflop — they see what everyone else does before deciding." },
       { type: "example", title: "Why acting last matters", body: "If three players check (don't bet) ahead of you and you're on the button, you've learned that none of them have a strong hand they want to put money in with. You can bet aggressively to try to take the pot. If you were first to act, you'd have to guess." },
