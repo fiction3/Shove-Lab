@@ -112,7 +112,7 @@ export default function DrillsView({ initialDrill, history, addHistory }) {
         gap: isMobile ? 16 : 20, alignItems: "start",
       }}>
         <div>
-          <ActiveDrill onAnswer={handleAnswer} key={activeId + "-" + history.length}/>
+          <ActiveDrill onAnswer={handleAnswer} key={activeId}/>
         </div>
 
         <aside style={{
