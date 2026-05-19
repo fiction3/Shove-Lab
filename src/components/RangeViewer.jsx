@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { RANKS } from "../lib/handUtils.js";
 import { getMaxPushBB, getMaxCallBB, getMaxReshoveBB } from "../lib/decisionLogic.js";
 import { getRfiFrequency } from "../data/rfiRanges.js";
@@ -34,6 +35,8 @@ function colorFor(max) {
  *   - raiserPos: when in reshove mode, the raiser position (defaults to CO)
  */
 export default function RangeViewer({ mode, position, stage, customMult, highlightHand, shoverPos, raiserPos, threeBettorPos }) {
+  const [hovered, setHovered] = useState(null); // { hand, x, y }
+
   function getMaxFor(hand) {
     if (mode === "push") return getMaxPushBB(position, hand, stage, customMult);
     if (mode === "call") {
@@ -56,6 +59,69 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
     return 0;
   }
 
+  /**
+   * Build advice for the tooltip. Returns an array of { action, pct, color }
+   * entries (frequency modes) or a single { summary } entry (threshold modes).
+   * The renderer below switches on shape.
+   */
+  function getAdvice(hand) {
+    if (mode === "openRaise") {
+      const f = getRfiFrequency(position, hand);
+      return {
+        kind: "frequency",
+        rows: [
+          { action: "Raise", pct: f.raise, color: "#7fc69a" },
+          { action: "Shove", pct: f.shove, color: "#e07a5f" },
+          { action: "Fold",  pct: f.fold,  color: "rgba(232,227,211,0.5)" },
+        ].filter(r => r.pct > 0),
+      };
+    }
+    if (mode === "threeBetDef") {
+      const villain = threeBettorPos || "BB";
+      const f = getDefenseFrequency(position, villain, hand);
+      return {
+        kind: "frequency",
+        rows: [
+          { action: "4-Bet", pct: f.fourBet, color: "#e07a5f" },
+          { action: "Call",  pct: f.call,    color: "#7fc69a" },
+          { action: "Fold",  pct: f.fold,    color: "rgba(232,227,211,0.5)" },
+        ].filter(r => r.pct > 0),
+      };
+    }
+    // Threshold modes (push / call / reshove)
+    const max = getMaxFor(hand);
+    let actionWord, color;
+    if (mode === "push") { actionWord = "Shove"; color = "#e07a5f"; }
+    else if (mode === "call") { actionWord = "Call"; color = "#7fc69a"; }
+    else { actionWord = "Reshove"; color = "#e07a5f"; }
+
+    if (max <= 0) {
+      return { kind: "threshold", summary: "Fold", color: "rgba(232,227,211,0.5)", detail: "Not in range at any stack." };
+    }
+    if (max >= 99) {
+      return { kind: "threshold", summary: `${actionWord} always`, color, detail: "Always in range." };
+    }
+    return {
+      kind: "threshold",
+      summary: `${actionWord} up to ${max.toFixed(1)}bb`,
+      color,
+      detail: `${actionWord} when effective stack ≤ ${max.toFixed(1)}bb. Fold above.`,
+    };
+  }
+
+  function handleEnter(e, hand) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHovered({
+      hand,
+      // Anchor below the cell, centered horizontally
+      x: rect.left + rect.width / 2,
+      y: rect.bottom + 8,
+    });
+  }
+  function handleLeave() {
+    setHovered(null);
+  }
+
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(13, 1fr)", gap: 2 }}>
@@ -69,6 +135,8 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
           const isHighlighted = hand === highlightHand;
           return (
             <div key={`${i}-${j}`}
+              onMouseEnter={e => handleEnter(e, hand)}
+              onMouseLeave={handleLeave}
               style={{
                 background: colorFor(max),
                 aspectRatio: "1",
@@ -83,8 +151,8 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
                 boxShadow: isHighlighted ? "0 0 0 2px rgba(255,217,106,0.4), 0 0 10px rgba(255,217,106,0.5)" : "none",
                 position: "relative",
                 zIndex: isHighlighted ? 1 : 0,
+                cursor: "default",
               }}
-              title={`${hand}: ${max > 0 ? max.toFixed(1) + "bb" : "not in range"}`}
             >
               {hand}
               {max > 0 && max < 99 && (
@@ -112,6 +180,78 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
           </div>
         ))}
       </div>
+
+      {hovered && <AdviceTooltip hand={hovered.hand} x={hovered.x} y={hovered.y} advice={getAdvice(hovered.hand)}/>}
+    </div>
+  );
+}
+
+/**
+ * Floating tooltip rendered with position: fixed so it can escape the grid.
+ * Centers under the hovered cell. If the cell is near the bottom of the
+ * screen, the tooltip flips above.
+ */
+function AdviceTooltip({ hand, x, y, advice }) {
+  // Estimate height of tooltip (~80px for freq, ~50px for threshold)
+  const estHeight = advice.kind === "frequency" ? 90 : 60;
+  const flipUp = y + estHeight + 20 > window.innerHeight;
+  const topPos = flipUp ? y - estHeight - 24 : y;
+
+  return (
+    <div style={{
+      position: "fixed",
+      left: x,
+      top: topPos,
+      transform: "translateX(-50%)",
+      background: "rgba(8,22,18,0.98)",
+      border: "1px solid rgba(212,161,59,0.4)",
+      borderRadius: 6,
+      padding: "10px 14px",
+      boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+      zIndex: 2000,
+      pointerEvents: "none",
+      minWidth: 140,
+      fontFamily: "inherit",
+    }}>
+      <div style={{
+        fontFamily: "'Cormorant Garamond', serif",
+        fontSize: 18, fontWeight: 600,
+        color: "#d4a13b",
+        marginBottom: 6,
+        lineHeight: 1,
+      }}>
+        {hand}
+      </div>
+
+      {advice.kind === "frequency" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {advice.rows.map(r => (
+            <div key={r.action} style={{
+              display: "flex", justifyContent: "space-between",
+              gap: 16, fontSize: 12,
+            }}>
+              <span style={{ color: r.color, fontWeight: 600 }}>{r.action}</span>
+              <span style={{ color: "rgba(232,227,211,0.85)", fontWeight: 500 }}>
+                {Math.round(r.pct * 100)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {advice.kind === "threshold" && (
+        <>
+          <div style={{
+            fontSize: 13, fontWeight: 700,
+            color: advice.color, marginBottom: 2,
+          }}>
+            {advice.summary}
+          </div>
+          <div style={{ fontSize: 11, opacity: 0.7, lineHeight: 1.4 }}>
+            {advice.detail}
+          </div>
+        </>
+      )}
     </div>
   );
 }
