@@ -790,16 +790,33 @@ export default function PushFoldTrainer() {
               <div>
                 <div style={subLabel}>Mode</div>
                 <ChipRow options={[
+                  { value: "openRaise", label: "Open Raise" },
                   { value: "push", label: "Open Shove" },
-                  { value: "call", label: "Call vs BTN" },
-                  { value: "reshove", label: "Reshove vs CO" },
-                ]} value={mode} onChange={setMode}/>
+                  { value: "call", label: "Call" },
+                  { value: "reshove", label: "Reshove" },
+                  { value: "threeBetDef", label: "vs 3-Bet" },
+                ]} value={mode} onChange={m => {
+                  setMode(m);
+                  // Reset locked position when switching modes since each mode
+                  // has a different valid set of positions.
+                  const validPositions = m === "call" ? TABLE_CONFIGS[6].callableFrom
+                                       : m === "reshove" ? TABLE_CONFIGS[6].reshovableFrom
+                                       : m === "openRaise" ? TABLE_CONFIGS[6].rfiTrainablePositions
+                                       : m === "threeBetDef" ? TABLE_CONFIGS[6].threeBetDefPositions
+                                       : TABLE_CONFIGS[6].trainablePositions;
+                  if (!validPositions.includes(lockedPosition || position)) {
+                    setLockedPosition(validPositions[0]);
+                    setPosition(validPositions[0]);
+                  }
+                }}/>
               </div>
               <div>
                 <div style={subLabel}>Position</div>
                 <ChipRow options={
                   (mode === "call" ? TABLE_CONFIGS[6].callableFrom
                     : mode === "reshove" ? TABLE_CONFIGS[6].reshovableFrom
+                    : mode === "openRaise" ? TABLE_CONFIGS[6].rfiTrainablePositions
+                    : mode === "threeBetDef" ? TABLE_CONFIGS[6].threeBetDefPositions
                     : TABLE_CONFIGS[6].trainablePositions
                   ).map(p => ({ value: p, label: p, title: POSITION_LABELS[p] }))
                 } value={lockedPosition || position}
@@ -817,11 +834,17 @@ export default function PushFoldTrainer() {
               borderRadius: 12, padding: 20,
             }}>
               <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, margin: "0 0 6px 0" }}>
-                {mode === "push" ? "Push range" : mode === "call" ? "Call range" : "Reshove range"}
+                {mode === "openRaise" ? "Open raise range"
+                  : mode === "push" ? "Push range"
+                  : mode === "call" ? "Call range"
+                  : mode === "reshove" ? "Reshove range"
+                  : "3-Bet defense range"}
                 {" · "}{position}{" · "}{ICM_STAGES[stage].label}
               </h3>
               <p style={{ fontSize: 12, opacity: 0.65, margin: "0 0 16px 0" }}>
-                Numbers in each cell = max effective stack (bb) at which the action is +EV. Hover for details.
+                {mode === "openRaise" || mode === "threeBetDef"
+                  ? "Cell color = how often the hand is played (vs folded). Hover/tap a cell for the GTO frequency breakdown."
+                  : "Numbers in each cell = max effective stack (bb) at which the action is +EV. Hover/tap for details."}
               </p>
               <RangeViewer mode={mode} position={lockedPosition || position} stage={stage} customMult={customMults}/>
             </div>
