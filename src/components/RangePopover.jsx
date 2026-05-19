@@ -21,9 +21,15 @@ export default function RangePopover({ open, onClose, mode, position, stage, cus
 
   if (!open) return null;
 
-  const modeLabel = mode === "push" ? "Open Shove" : mode === "call" ? "Call Range" : "Reshove Range";
+  const modeLabel = mode === "push" ? "Open Shove"
+                  : mode === "openRaise" ? "Open Raise Range"
+                  : mode === "call" ? "Call Range"
+                  : mode === "reshove" ? "Reshove Range"
+                  : mode === "threeBetDef" ? "3-Bet Defense Range"
+                  : "Range";
   const villainContext = mode === "call" ? ` vs ${villain || "BTN"} shove`
                        : mode === "reshove" ? ` vs ${villain || "CO"} raise`
+                       : mode === "threeBetDef" ? ` vs ${villain || "BB"} 3-bet`
                        : "";
 
   return (
@@ -98,6 +104,7 @@ export default function RangePopover({ open, onClose, mode, position, stage, cus
           highlightHand={highlightHand}
           shoverPos={mode === "call" ? villain : undefined}
           raiserPos={mode === "reshove" ? villain : undefined}
+          threeBettorPos={mode === "threeBetDef" ? villain : undefined}
         />
 
         <div style={{

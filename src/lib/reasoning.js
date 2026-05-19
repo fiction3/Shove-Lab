@@ -258,3 +258,89 @@ export function openRaiseAfter(position, hand, stackBB, chosen, stage) {
       : null,
   };
 }
+
+// ---------- 3-BET DEFENSE (you opened, got 3-bet) ----------
+
+import {
+  getDefenseFrequency, gradeDefenseAction, primaryDefenseAction,
+} from "../data/threeBetDefenseRanges.js";
+
+export function threeBetDefenseBefore(heroPos, threeBettorPos, hand, stackBB, stage) {
+  const cat = rankCategory(hand);
+  const stageInfo = ICM_STAGES[stage];
+
+  let setup = `${stackBB}bb effective. You raised from ${heroPos} with ${cat} (${hand}). ${threeBettorPos} 3-bet you.`;
+
+  let positionContext;
+  if (heroPos === "BTN") positionContext = "You opened the BTN — your widest range. Now facing a 3-bet, you need to defend wider than UTG would, because your opening range had more bluffs.";
+  else if (heroPos === "CO") positionContext = "You opened from CO — a wide range. Defense should be value-heavy with some bluff 4-bets in the mix (small suited aces work well).";
+  else if (heroPos === "HJ") positionContext = "You opened from HJ — relatively tight. Most marginal hands fold to a 3-bet; the value range is JJ+, AQ+ for 4-bets.";
+  else if (heroPos === "UTG") positionContext = "You opened from UTG — your tightest range. 3-bet defense is also tight: this is mostly 'have a premium and 4-bet, or have a strong call, or fold'.";
+  else if (heroPos === "SB") positionContext = "You opened from the SB and got 3-bet by the BB — you're out of position post-flop with no skill edge from position. Defense ranges tighten because of this.";
+
+  let threeBettorContext;
+  if (threeBettorPos === "SB") threeBettorContext = "SB 3-bets from out of position — their range skews toward value (premiums + suited aces) with limited bluffs.";
+  else if (threeBettorPos === "BB") threeBettorContext = "BB 3-bets from out of position too, but defends a wider range with bluffs sprinkled in — slightly more inclined to call.";
+
+  let stackContext;
+  if (stackBB <= 28) stackContext = "Around 25bb — your '4-bet' button is effectively all-in (a small 4-bet doesn't have stack-to-pot leverage at this depth).";
+  else if (stackBB <= 33) stackContext = "At 30bb you can make small 4-bets, but most 4-bets here are still shoves for simplicity.";
+  else stackContext = "At 35bb+ small non-allin 4-bets become viable — they fold out bluffs while keeping value hands stuck.";
+
+  return {
+    setup,
+    note: "This is a preflop decision — you haven't seen a flop yet. If you call here, you go to the flop next (we don't simulate that yet); if you 4-bet or fold, the hand ends here.",
+    position: positionContext,
+    threeBettor: threeBettorContext,
+    stack: stackContext,
+    icm: stage !== "CHIP_EV" ? `${stageInfo.label}: ${stageInfo.description}. ICM tightens 4-bet ranges (calling and folding gain value over 4-betting).` : null,
+    question: "Fold, call (see a flop with skill edge or position), or 4-bet/shove (apply pressure with value or as a bluff)?",
+  };
+}
+
+export function threeBetDefenseAfter(heroPos, threeBettorPos, hand, stackBB, chosen, stage) {
+  const freq = getDefenseFrequency(heroPos, threeBettorPos, hand);
+  const grade = gradeDefenseAction(chosen, freq);
+  const optimal = primaryDefenseAction(freq);
+  const verdict = grade === "exact" ? "correct" : grade === "close" ? "close" : "mistake";
+
+  const freqParts = [];
+  if (freq.fold > 0) freqParts.push(`Fold ${Math.round(freq.fold * 100)}%`);
+  if (freq.call > 0) freqParts.push(`Call ${Math.round(freq.call * 100)}%`);
+  if (freq.fourBet > 0) freqParts.push(`4-bet ${Math.round(freq.fourBet * 100)}%`);
+  const freqString = freqParts.join(" · ");
+
+  const actionWord = a => a === "fourBet" ? "4-bet/shove" : a;
+  let why;
+  if (grade === "exact") {
+    why = `Good — ${hand} primarily plays as a ${actionWord(optimal)} (${Math.round(freq[optimal] * 100)}%) when ${heroPos} gets 3-bet by ${threeBettorPos}.`;
+  } else if (grade === "close") {
+    why = `Defensible — GTO mixes ${actionWord(chosen)} ${Math.round(freq[chosen] * 100)}% of the time here. The primary action is ${actionWord(optimal)} (${Math.round(freq[optimal] * 100)}%).`;
+  } else {
+    why = `${actionWord(chosen)} isn't in the GTO strategy with ${hand} from ${heroPos} vs ${threeBettorPos}'s 3-bet. The right play is ${actionWord(optimal)} (${Math.round(freq[optimal] * 100)}%).`;
+  }
+
+  let lesson;
+  if (grade === "exact") {
+    lesson = "Locked in. 3-bet defense is one of the highest-EV preflop skills — most beginners over-fold here.";
+  } else if (grade === "close") {
+    lesson = "Mixed strategy. Both your action and the primary one are in the GTO mix — focus on knowing which hands are 'pure 4-bet' vs 'mixed' vs 'pure call'.";
+  } else if (chosen === "fold" && optimal !== "fold") {
+    lesson = "Over-folding to 3-bets is the biggest beginner leak in this spot. You opened with a hand strong enough to play — that hand often still has equity to call or 4-bet.";
+  } else if (chosen === "fourBet" && optimal === "call") {
+    lesson = "This hand plays better as a call — it has good equity but loses value when stacks go in (dominated by 4-bet/call range of villain).";
+  } else if (chosen === "call" && optimal === "fourBet") {
+    lesson = "Strong enough to 4-bet, not just call. Calling lets villain realize equity cheaply with their bluffs; 4-betting denies that.";
+  } else {
+    lesson = "Range discipline matters. Check the range grid (button below) to see where this hand fits.";
+  }
+
+  return {
+    verdict, correct: optimal, why, lesson,
+    grade, freq, freqString,
+    max: null,
+    icmNote: stage !== "CHIP_EV"
+      ? `${ICM_STAGES[stage].label}: ICM pressure further tightens 4-bet ranges — pure calls become slightly more attractive.`
+      : null,
+  };
+}

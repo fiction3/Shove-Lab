@@ -4,7 +4,7 @@ import { TABLE_CONFIGS, POSITION_LABELS } from "../data/tableConfigs.js";
 import { ICM_STAGES } from "../data/icmStages.js";
 
 import {
-  handCode, randomHand, randomStack, randomPositionFor, randomVillainBefore,
+  handCode, randomHand, randomStack, randomPositionFor, randomVillainBefore, randomThreeBettorAfter,
 } from "../lib/handUtils.js";
 import {
   optimalPushAction, optimalCallAction, optimalReshoveAction,
@@ -13,8 +13,12 @@ import { deriveMultipliers } from "../lib/icm.js";
 import {
   pushBefore, pushAfter, callBefore, callAfter, reshoveBefore, reshoveAfter,
   openRaiseBefore, openRaiseAfter,
+  threeBetDefenseBefore, threeBetDefenseAfter,
 } from "../lib/reasoning.js";
 import { getRfiFrequency, gradeRfiAction, primaryAction } from "../data/rfiRanges.js";
+import {
+  getDefenseFrequency, gradeDefenseAction, primaryDefenseAction,
+} from "../data/threeBetDefenseRanges.js";
 
 import TritonCard from "./TritonCard.jsx";
 import MiniTable from "./MiniTable.jsx";
@@ -79,6 +83,7 @@ function ModeTabs({ mode, onChange }) {
         { value: "push", label: "Shove" },
         { value: "call", label: "Call" },
         { value: "reshove", label: "Reshove" },
+        { value: "threeBetDef", label: "vs 3-Bet" },
       ].map(t => {
         const active = mode === t.value;
         return (
@@ -177,10 +182,10 @@ export default function PushFoldTrainer() {
   const before = useMemo(() => {
     if (mode === "push") return pushBefore(position, code, stack, seatCount, stage, customMults);
     if (mode === "openRaise") return openRaiseBefore(position, code, stack, seatCount, stage);
-    // For call/reshove modes, wait for villain to be set before computing reasoning.
-    // (Brief state-transition window where mode flips but villain hasn't been re-rolled yet.)
+    // For call/reshove/threeBetDef modes, wait for villain to be set before computing reasoning.
     if (!villain) return null;
     if (mode === "call") return callBefore(position, villain, code, stack, seatCount, stage, customMults);
+    if (mode === "threeBetDef") return threeBetDefenseBefore(position, villain, code, stack, stage);
     return reshoveBefore(position, villain, code, stack, seatCount, stage, customMults);
   }, [mode, position, villain, code, stack, seatCount, stage, customMults]);
 
@@ -190,6 +195,7 @@ export default function PushFoldTrainer() {
     if (mode === "openRaise") return openRaiseAfter(position, code, stack, chosen, stage);
     if (!villain) return null;
     if (mode === "call") return callAfter(position, villain, code, stack, chosen, stage, customMults);
+    if (mode === "threeBetDef") return threeBetDefenseAfter(position, villain, code, stack, chosen, stage);
     return reshoveAfter(position, villain, code, stack, chosen, stage, customMults);
   }, [mode, revealed, chosen, position, villain, code, stack, stage, customMults]);
 
@@ -198,6 +204,8 @@ export default function PushFoldTrainer() {
     setPosition(pos);
     if (newMode === "call" || newMode === "reshove") {
       setVillain(randomVillainBefore(newSeats, pos));
+    } else if (newMode === "threeBetDef") {
+      setVillain(randomThreeBettorAfter(newSeats, pos));
     } else {
       setVillain(null);
     }
@@ -218,6 +226,7 @@ export default function PushFoldTrainer() {
     const trainable = mode === "call" ? TABLE_CONFIGS[n].callableFrom
                     : mode === "reshove" ? TABLE_CONFIGS[n].reshovableFrom
                     : mode === "openRaise" ? TABLE_CONFIGS[n].rfiTrainablePositions
+                    : mode === "threeBetDef" ? TABLE_CONFIGS[n].threeBetDefPositions
                     : TABLE_CONFIGS[n].trainablePositions;
     const stillValid = lockedPosition && trainable.includes(lockedPosition);
     const newLocked = stillValid ? lockedPosition : null;
@@ -237,7 +246,11 @@ export default function PushFoldTrainer() {
       const freq = getRfiFrequency(position, code);
       grade = gradeRfiAction(action, freq);
       correct = primaryAction(freq);
-      // exact OR close both count as "correct" for the running session score
+      isCorrect = grade === "exact" || grade === "close";
+    } else if (mode === "threeBetDef") {
+      const freq = getDefenseFrequency(position, villain, code);
+      grade = gradeDefenseAction(action, freq);
+      correct = primaryDefenseAction(freq);
       isCorrect = grade === "exact" || grade === "close";
     } else {
       correct = mode === "push" ? optimalPushAction(position, code, stack, stage, customMults)
@@ -265,6 +278,7 @@ export default function PushFoldTrainer() {
     const trainable = mode === "call" ? TABLE_CONFIGS[seatCount].callableFrom
                     : mode === "reshove" ? TABLE_CONFIGS[seatCount].reshovableFrom
                     : mode === "openRaise" ? TABLE_CONFIGS[seatCount].rfiTrainablePositions
+                    : mode === "threeBetDef" ? TABLE_CONFIGS[seatCount].threeBetDefPositions
                     : TABLE_CONFIGS[seatCount].trainablePositions;
     return [
       { value: "RANDOM", label: "Random" },
@@ -296,6 +310,7 @@ export default function PushFoldTrainer() {
   let actionLabel;
   if (mode === "call") actionLabel = villain ? `${villain} shoves all-in` : "Villain shoves all-in";
   else if (mode === "reshove") actionLabel = villain ? `${villain} min-raises to 2bb` : "Villain min-raises to 2bb";
+  else if (mode === "threeBetDef") actionLabel = villain ? `You raise. ${villain} 3-bets.` : "Villain 3-bets your raise";
   else if (isFirstToAct) actionLabel = "First to act preflop";
   else actionLabel = "Folded to you";
 
@@ -310,20 +325,26 @@ export default function PushFoldTrainer() {
         { value: "raise", label: "Raise", color: "#3a7d4c" },
         { value: "shove", label: "Shove", color: "#c8102e" },
       ]
-    : mode === "call"
+    : mode === "threeBetDef"
       ? [
-          { value: "fold", label: "Fold", color: "#6b6b6b" },
-          { value: "call", label: "Call", color: "#3a7d4c" },
+          { value: "fold",    label: "Fold",      color: "#6b6b6b" },
+          { value: "call",    label: "Call",      color: "#3a7d4c" },
+          { value: "fourBet", label: stack <= 30 ? "4-Bet Shove" : "4-Bet", color: "#c8102e" },
         ]
-      : mode === "reshove"
+      : mode === "call"
         ? [
-            { value: "fold",  label: "Fold",    color: "#6b6b6b" },
-            { value: "shove", label: "Reshove", color: "#c8102e" },
+            { value: "fold", label: "Fold", color: "#6b6b6b" },
+            { value: "call", label: "Call", color: "#3a7d4c" },
           ]
-        : [
-            { value: "fold",  label: "Fold",  color: "#6b6b6b" },
-            { value: "shove", label: "Shove", color: "#c8102e" },
-          ];
+        : mode === "reshove"
+          ? [
+              { value: "fold",  label: "Fold",    color: "#6b6b6b" },
+              { value: "shove", label: "Reshove", color: "#c8102e" },
+            ]
+          : [
+              { value: "fold",  label: "Fold",  color: "#6b6b6b" },
+              { value: "shove", label: "Shove", color: "#c8102e" },
+            ];
 
   return (
     <div style={{
@@ -444,7 +465,9 @@ export default function PushFoldTrainer() {
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: "#d4a13b" }}>
                   {mode === "push" || mode === "openRaise"
                     ? POSITION_LABELS[position]
-                    : `${POSITION_LABELS[position]} vs ${villain || "villain"} ${mode === "call" ? "shove" : "raise"}`}
+                    : mode === "threeBetDef"
+                      ? `${POSITION_LABELS[position]} open vs ${villain || "villain"} 3-bet`
+                      : `${POSITION_LABELS[position]} vs ${villain || "villain"} ${mode === "call" ? "shove" : "raise"}`}
                 </div>
               </div>
             </aside>
@@ -463,8 +486,23 @@ export default function PushFoldTrainer() {
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
                 <div>
-                  <div style={{ fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", opacity: 0.5 }}>
-                    Action
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                  }}>
+                    <div style={{ fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", opacity: 0.5 }}>
+                      Action
+                    </div>
+                    <span style={{
+                      fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase",
+                      padding: "2px 8px",
+                      background: "rgba(212,161,59,0.12)",
+                      border: "1px solid rgba(212,161,59,0.35)",
+                      borderRadius: 3,
+                      color: "#d4a13b",
+                      fontWeight: 700,
+                    }}>
+                      Preflop
+                    </span>
                   </div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, marginTop: 4 }}>
                     {actionLabel}
@@ -474,8 +512,22 @@ export default function PushFoldTrainer() {
                   <div style={{ fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", opacity: 0.5 }}>
                     {mode === "call" ? "To call" : "Effective stack"}
                   </div>
-                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, marginTop: 4, color: "#d4a13b" }}>
-                    {stack} bb
+                  <div style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 26, marginTop: 4, color: "#d4a13b",
+                    display: "flex", alignItems: "baseline",
+                    justifyContent: "flex-end", gap: 4,
+                  }}>
+                    <span>{stack}</span>
+                    <span style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 13,
+                      letterSpacing: "0.05em",
+                      fontWeight: 600,
+                      opacity: 0.7,
+                    }}>
+                      bb
+                    </span>
                   </div>
                 </div>
               </div>
@@ -522,7 +574,7 @@ export default function PushFoldTrainer() {
                      : "Mistake"}
                   </div>
                   <div style={{ opacity: 0.7, fontSize: 13, marginTop: 6 }}>
-                    {mode === "openRaise" ? (
+                    {mode === "openRaise" || mode === "threeBetDef" ? (
                       <>GTO mix: <strong style={{ color: "#d4a13b" }}>{after.freqString}</strong></>
                     ) : (
                       <>
@@ -558,6 +610,20 @@ export default function PushFoldTrainer() {
                       Think it through
                     </h3>
                     <p style={{ margin: "0 0 12px 0" }}>{before.setup}</p>
+                    {before.note && (
+                      <p style={{
+                        margin: "0 0 14px 0",
+                        padding: "10px 12px",
+                        background: "rgba(212,161,59,0.06)",
+                        borderLeft: "2px solid rgba(212,161,59,0.4)",
+                        borderRadius: 4,
+                        fontSize: 12,
+                        lineHeight: 1.55,
+                        opacity: 0.9,
+                      }}>
+                        {before.note}
+                      </p>
+                    )}
                     {before.potOdds && (
                       <p style={{ margin: "0 0 12px 0", opacity: 0.85 }}>
                         <strong style={{ color: "#d4a13b" }}>Pot odds:</strong> {before.potOdds}
@@ -579,6 +645,11 @@ export default function PushFoldTrainer() {
                     {before.raiser && (
                       <p style={{ margin: "0 0 12px 0", opacity: 0.85 }}>
                         <strong style={{ color: "#d4a13b" }}>Raiser:</strong> {before.raiser}.
+                      </p>
+                    )}
+                    {before.threeBettor && (
+                      <p style={{ margin: "0 0 12px 0", opacity: 0.85 }}>
+                        <strong style={{ color: "#d4a13b" }}>3-Bettor:</strong> {before.threeBettor}
                       </p>
                     )}
                     {before.icm && (

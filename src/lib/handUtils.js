@@ -42,8 +42,12 @@ export function randomStack(mode) {
     return choices[Math.floor(Math.random() * choices.length)];
   }
   if (mode === "openRaise") {
-    // Medium-stack RFI: 20-40bb territory where raise becomes the primary action.
     const choices = [20, 22, 25, 28, 30, 33, 35, 40];
+    return choices[Math.floor(Math.random() * choices.length)];
+  }
+  if (mode === "threeBetDef") {
+    // 3-bet defense: 25-40bb where the decision tree is most interesting
+    const choices = [25, 28, 30, 32, 35, 38, 40];
     return choices[Math.floor(Math.random() * choices.length)];
   }
   const choices = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -55,6 +59,7 @@ export function randomPositionFor(seatCount, lockedPosition, mode) {
   const opts = mode === "call" ? TABLE_CONFIGS[seatCount].callableFrom
              : mode === "reshove" ? TABLE_CONFIGS[seatCount].reshovableFrom
              : mode === "openRaise" ? TABLE_CONFIGS[seatCount].rfiTrainablePositions
+             : mode === "threeBetDef" ? TABLE_CONFIGS[seatCount].threeBetDefPositions
              : TABLE_CONFIGS[seatCount].trainablePositions;
   return opts[Math.floor(Math.random() * opts.length)];
 }
@@ -64,6 +69,22 @@ export function randomVillainBefore(seatCount, heroPos) {
   const heroIdx = positions.indexOf(heroPos);
   if (heroIdx <= 0) return null;
   const candidates = positions.slice(0, heroIdx);
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+/**
+ * Pick a 3-bettor: SB or BB, whichever is after hero in the action order.
+ * Returns null if neither blind is behind hero (e.g. hero is BB).
+ */
+export function randomThreeBettorAfter(seatCount, heroPos) {
+  const positions = TABLE_CONFIGS[seatCount].positions;
+  const heroIdx = positions.indexOf(heroPos);
+  if (heroIdx === -1) return null;
+  const after = positions.slice(heroIdx + 1);
+  // Only SB and BB can 3-bet you in our training spots.
+  const candidates = after.filter(p => p === "SB" || p === "BB");
+  if (candidates.length === 0) return null;
+  // If hero is SB, only BB can 3-bet. If hero is anywhere else, mix SB/BB.
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 

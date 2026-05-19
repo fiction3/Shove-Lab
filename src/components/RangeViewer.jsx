@@ -1,6 +1,7 @@
 import { RANKS } from "../lib/handUtils.js";
 import { getMaxPushBB, getMaxCallBB, getMaxReshoveBB } from "../lib/decisionLogic.js";
 import { getRfiFrequency } from "../data/rfiRanges.js";
+import { getDefenseFrequency } from "../data/threeBetDefenseRanges.js";
 
 const COLOR_LEGEND = [
   { c: "#2a2a2a", l: "Never" },
@@ -32,7 +33,7 @@ function colorFor(max) {
  *   - shoverPos: when in call mode, the actual shover position to use (defaults to BTN)
  *   - raiserPos: when in reshove mode, the raiser position (defaults to CO)
  */
-export default function RangeViewer({ mode, position, stage, customMult, highlightHand, shoverPos, raiserPos }) {
+export default function RangeViewer({ mode, position, stage, customMult, highlightHand, shoverPos, raiserPos, threeBettorPos }) {
   function getMaxFor(hand) {
     if (mode === "push") return getMaxPushBB(position, hand, stage, customMult);
     if (mode === "call") {
@@ -44,10 +45,13 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
       return getMaxReshoveBB(position, raiser, hand, stage, customMult);
     }
     if (mode === "openRaise") {
-      // Convert play frequency (raise + shove) into a 0-100 "intensity" for coloring.
-      // Multiply by 99 so 100% maps to "Always", 50% to mid range, etc.
       const f = getRfiFrequency(position, hand);
       return (f.raise + f.shove) * 99;
+    }
+    if (mode === "threeBetDef") {
+      // Color by "% of time we don't fold" — both call and 4-bet are defense
+      const f = getDefenseFrequency(position, threeBettorPos || "BB", hand);
+      return ((f.call || 0) + (f.fourBet || 0)) * 99;
     }
     return 0;
   }

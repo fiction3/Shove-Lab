@@ -8,6 +8,7 @@ export const TABLE_CONFIGS = {
     callableFrom: ["BB"],
     reshovableFrom: ["BB"],
     rfiTrainablePositions: ["SB"],
+    threeBetDefPositions: [], // 3-bet defense not really applicable in HU as a distinct trainer mode
   },
   3: {
     label: "3-Max",
@@ -16,6 +17,7 @@ export const TABLE_CONFIGS = {
     callableFrom: ["SB", "BB"],
     reshovableFrom: ["SB", "BB"],
     rfiTrainablePositions: ["BTN", "SB"],
+    threeBetDefPositions: ["BTN", "SB"],
   },
   6: {
     label: "6-Max",
@@ -24,6 +26,7 @@ export const TABLE_CONFIGS = {
     callableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
     reshovableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
     rfiTrainablePositions: ["UTG", "HJ", "CO", "BTN", "SB"],
+    threeBetDefPositions: ["UTG", "HJ", "CO", "BTN", "SB"],
   },
   9: {
     label: "9-Max",
@@ -32,6 +35,7 @@ export const TABLE_CONFIGS = {
     callableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
     reshovableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
     rfiTrainablePositions: ["UTG", "UTG1", "MP", "MP1", "HJ", "CO", "BTN", "SB"],
+    threeBetDefPositions: ["UTG", "HJ", "CO", "BTN", "SB"],
   },
 };
 
