@@ -26,6 +26,7 @@ import LearnView from "./LearnView.jsx";
 import DrillsView from "./DrillsView.jsx";
 import RangePopover from "./RangePopover.jsx";
 import HandsView from "./HandsView.jsx";
+import RangeGridIcon from "./RangeGridIcon.jsx";
 
 // ---------- Styles (kept inline for now, can extract later) ----------
 
@@ -599,8 +600,13 @@ export default function PushFoldTrainer() {
                       fontWeight: 600,
                       fontFamily: "inherit",
                       width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
                     }}>
-                      📊 Show range grid
+                      <RangeGridIcon size={16}/>
+                      Show range grid
                     </button>
                     <p style={questionStyle}>{before.question}</p>
                   </>
@@ -644,8 +650,13 @@ export default function PushFoldTrainer() {
                       fontWeight: 600,
                       fontFamily: "inherit",
                       width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
                     }}>
-                      📊 Show range grid
+                      <RangeGridIcon size={16}/>
+                      Show range grid
                     </button>
                   </>
                 )}
