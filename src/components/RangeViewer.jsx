@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RANKS } from "../lib/handUtils.js";
 import { getMaxPushBB, getMaxCallBB, getMaxReshoveBB } from "../lib/decisionLogic.js";
 import { getRfiFrequency } from "../data/rfiRanges.js";
@@ -109,7 +109,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
     };
   }
 
-  function handleEnter(e, hand) {
+  function showTooltip(e, hand) {
     const rect = e.currentTarget.getBoundingClientRect();
     setHovered({
       hand,
@@ -118,9 +118,25 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
       y: rect.bottom + 8,
     });
   }
-  function handleLeave() {
+  function hideTooltip() {
     setHovered(null);
   }
+  function handleCellClick(e, hand) {
+    // On touch devices, a tap shows tooltip; tapping the same cell dismisses it.
+    // We stopPropagation so the document-level click handler doesn't immediately
+    // hide what we just opened.
+    e.stopPropagation();
+    if (hovered?.hand === hand) hideTooltip();
+    else showTooltip(e, hand);
+  }
+
+  // Dismiss tooltip when user taps anywhere outside the grid (touch flow)
+  useEffect(() => {
+    if (!hovered) return;
+    function onDocClick() { setHovered(null); }
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, [hovered]);
 
   return (
     <div>
@@ -135,8 +151,9 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
           const isHighlighted = hand === highlightHand;
           return (
             <div key={`${i}-${j}`}
-              onMouseEnter={e => handleEnter(e, hand)}
-              onMouseLeave={handleLeave}
+              onMouseEnter={e => showTooltip(e, hand)}
+              onMouseLeave={hideTooltip}
+              onClick={e => handleCellClick(e, hand)}
               style={{
                 background: colorFor(max),
                 aspectRatio: "1",
@@ -151,7 +168,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
                 boxShadow: isHighlighted ? "0 0 0 2px rgba(255,217,106,0.4), 0 0 10px rgba(255,217,106,0.5)" : "none",
                 position: "relative",
                 zIndex: isHighlighted ? 1 : 0,
-                cursor: "default",
+                cursor: "pointer",
               }}
             >
               {hand}
@@ -192,17 +209,27 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
  * screen, the tooltip flips above.
  */
 function AdviceTooltip({ hand, x, y, advice }) {
-  // Estimate height of tooltip (~80px for freq, ~50px for threshold)
+  // Estimated dimensions (we don't measure the DOM here to keep this cheap)
   const estHeight = advice.kind === "frequency" ? 90 : 60;
+  const estWidth = 170;  // tooltip natural width with padding
+  const margin = 8;       // minimum gap from viewport edge
+
+  // Vertical: flip above the cell if it would clip off the bottom
   const flipUp = y + estHeight + 20 > window.innerHeight;
   const topPos = flipUp ? y - estHeight - 24 : y;
+
+  // Horizontal: try to center on x, but clamp so it never overflows either edge
+  const half = estWidth / 2;
+  const maxLeft = window.innerWidth - estWidth - margin;
+  let leftPos = x - half; // natural centered position
+  if (leftPos < margin) leftPos = margin;
+  if (leftPos > maxLeft) leftPos = maxLeft;
 
   return (
     <div style={{
       position: "fixed",
-      left: x,
+      left: leftPos,
       top: topPos,
-      transform: "translateX(-50%)",
       background: "rgba(8,22,18,0.98)",
       border: "1px solid rgba(212,161,59,0.4)",
       borderRadius: 6,
@@ -211,6 +238,7 @@ function AdviceTooltip({ hand, x, y, advice }) {
       zIndex: 2000,
       pointerEvents: "none",
       minWidth: 140,
+      maxWidth: estWidth,
       fontFamily: "inherit",
     }}>
       <div style={{
