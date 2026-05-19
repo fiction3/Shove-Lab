@@ -25,15 +25,23 @@ function colorFor(max) {
  * Standard 13×13 hand grid. Pairs on the diagonal, suited above, offsuit
  * below. Each cell is colored by the max bb threshold at which the action
  * is +EV given the current mode/position/stage.
+ *
+ * Optional props:
+ *   - highlightHand: a hand code (e.g. "AKs") to highlight with a thick gold border
+ *   - shoverPos: when in call mode, the actual shover position to use (defaults to BTN)
+ *   - raiserPos: when in reshove mode, the raiser position (defaults to CO)
  */
-export default function RangeViewer({ mode, position, stage, customMult }) {
+export default function RangeViewer({ mode, position, stage, customMult, highlightHand, shoverPos, raiserPos }) {
   function getMaxFor(hand) {
     if (mode === "push") return getMaxPushBB(position, hand, stage, customMult);
     if (mode === "call") {
-      const shover = position === "BB" ? "BTN" : "BTN";
+      const shover = shoverPos || "BTN";
       return getMaxCallBB(position, shover, hand, stage, customMult);
     }
-    if (mode === "reshove") return getMaxReshoveBB(position, "CO", hand, stage, customMult);
+    if (mode === "reshove") {
+      const raiser = raiserPos || "CO";
+      return getMaxReshoveBB(position, raiser, hand, stage, customMult);
+    }
     return 0;
   }
 
@@ -47,17 +55,23 @@ export default function RangeViewer({ mode, position, stage, customMult }) {
           else hand = r2 + r1 + "o";
           const max = getMaxFor(hand);
           const isPair = i === j;
+          const isHighlighted = hand === highlightHand;
           return (
             <div key={`${i}-${j}`}
               style={{
                 background: colorFor(max),
                 aspectRatio: "1",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 10, fontWeight: 700, color: "#fafaf7",
+                fontSize: 10, fontWeight: 700,
+                color: isHighlighted ? "#fafaf7" : "#fafaf7",
                 fontFamily: "'Inter', sans-serif",
                 borderRadius: 2,
-                border: isPair ? "1px solid rgba(212,161,59,0.4)" : "none",
+                border: isHighlighted
+                  ? "2px solid #ffd96a"
+                  : isPair ? "1px solid rgba(212,161,59,0.4)" : "none",
+                boxShadow: isHighlighted ? "0 0 0 2px rgba(255,217,106,0.4), 0 0 10px rgba(255,217,106,0.5)" : "none",
                 position: "relative",
+                zIndex: isHighlighted ? 1 : 0,
               }}
               title={`${hand}: ${max > 0 ? max.toFixed(1) + "bb" : "not in range"}`}
             >

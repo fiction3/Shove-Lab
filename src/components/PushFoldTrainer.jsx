@@ -22,6 +22,7 @@ import SessionReview from "./SessionReview.jsx";
 import ICMSetup from "./ICMSetup.jsx";
 import LearnView from "./LearnView.jsx";
 import DrillsView from "./DrillsView.jsx";
+import RangePopover from "./RangePopover.jsx";
 
 // ---------- Styles (kept inline for now, can extract later) ----------
 
@@ -153,6 +154,7 @@ export default function PushFoldTrainer() {
   // Drill state (separate history from trainer hands)
   const [drillHistory, setDrillHistory] = useState([]);
   const [drillDeepLink, setDrillDeepLink] = useState(null);
+  const [rangePopoverOpen, setRangePopoverOpen] = useState(false);
 
   function addDrillHistory(entry) {
     setDrillHistory(h => [...h, entry]);
@@ -512,6 +514,23 @@ export default function PushFoldTrainer() {
                         <strong style={{ color: "#e07a5f" }}>ICM:</strong> {before.icm}
                       </p>
                     )}
+                    <button onClick={() => setRangePopoverOpen(true)} style={{
+                      marginTop: 6,
+                      background: "transparent",
+                      color: "#d4a13b",
+                      border: "1px solid rgba(212,161,59,0.4)",
+                      borderRadius: 4,
+                      padding: "8px 14px",
+                      cursor: "pointer",
+                      fontSize: 11,
+                      letterSpacing: "0.15em",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      fontFamily: "inherit",
+                      width: "100%",
+                    }}>
+                      📊 Show range grid
+                    </button>
                     <p style={questionStyle}>{before.question}</p>
                   </>
                   ) : null
@@ -535,11 +554,41 @@ export default function PushFoldTrainer() {
                     }}>
                       <strong>Takeaway:</strong> {after.lesson}
                     </p>
+                    <button onClick={() => setRangePopoverOpen(true)} style={{
+                      marginTop: 12,
+                      background: "transparent",
+                      color: "#d4a13b",
+                      border: "1px solid rgba(212,161,59,0.4)",
+                      borderRadius: 4,
+                      padding: "8px 14px",
+                      cursor: "pointer",
+                      fontSize: 11,
+                      letterSpacing: "0.15em",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      fontFamily: "inherit",
+                      width: "100%",
+                    }}>
+                      📊 Show range grid
+                    </button>
                   </>
                 )}
               </aside>
             )}
           </div>
+        )}
+
+        {view === "trainer" && (
+          <RangePopover
+            open={rangePopoverOpen}
+            onClose={() => setRangePopoverOpen(false)}
+            mode={mode}
+            position={position}
+            stage={stage}
+            customMult={customMults}
+            highlightHand={code}
+            villain={villain}
+          />
         )}
 
         {view === "ranges" && (
