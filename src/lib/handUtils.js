@@ -41,6 +41,11 @@ export function randomStack(mode) {
     const choices = [10, 12, 14, 16, 18, 20, 22, 25];
     return choices[Math.floor(Math.random() * choices.length)];
   }
+  if (mode === "openRaise") {
+    // Medium-stack RFI: 20-40bb territory where raise becomes the primary action.
+    const choices = [20, 22, 25, 28, 30, 33, 35, 40];
+    return choices[Math.floor(Math.random() * choices.length)];
+  }
   const choices = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   return choices[Math.floor(Math.random() * choices.length)];
 }
@@ -49,6 +54,7 @@ export function randomPositionFor(seatCount, lockedPosition, mode) {
   if (lockedPosition && lockedPosition !== "RANDOM") return lockedPosition;
   const opts = mode === "call" ? TABLE_CONFIGS[seatCount].callableFrom
              : mode === "reshove" ? TABLE_CONFIGS[seatCount].reshovableFrom
+             : mode === "openRaise" ? TABLE_CONFIGS[seatCount].rfiTrainablePositions
              : TABLE_CONFIGS[seatCount].trainablePositions;
   return opts[Math.floor(Math.random() * opts.length)];
 }

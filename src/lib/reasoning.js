@@ -4,6 +4,7 @@
 
 import { POSITION_LABELS } from "../data/tableConfigs.js";
 import { ICM_STAGES } from "../data/icmStages.js";
+import { getRfiFrequency, gradeRfiAction, primaryAction } from "../data/rfiRanges.js";
 import { rankCategory, playersBehind } from "./handUtils.js";
 import {
   getMaxPushBB, getMaxCallBB, getMaxReshoveBB,
@@ -171,4 +172,77 @@ export function reshoveAfter(heroPos, raiserPos, hand, stackBB, chosen, stage, c
   else if (chosen === correct && correct === "shove") lesson = "Good reshove. Dead money + fold equity > equity loss when called.";
   else lesson = "Good fold. Save the stack for a better spot than a coin flip.";
   return { verdict, correct, why, lesson, max, icmNote };
+}
+
+// ---------- OPEN RAISE (RFI, medium stack) ----------
+
+export function openRaiseBefore(position, hand, stackBB, seatCount, stage) {
+  const cat = rankCategory(hand);
+  const behind = playersBehind(position, seatCount);
+  const stageInfo = ICM_STAGES[stage];
+
+  let stackContext;
+  if (stackBB <= 22) stackContext = "the bottom of the medium-stack range — raising and shoving both come into play, with shoves slightly more frequent on premium hands";
+  else if (stackBB <= 30) stackContext = "the heart of the medium-stack RFI range — raising is your default, with a handful of premium hands mixing in shoves";
+  else stackContext = "deeper medium-stack play — almost everything you play is a raise; shoves are rare for balance reasons";
+
+  let positionContext;
+  if (position === "BTN") positionContext = "From the BTN you have the widest opening range — both blinds defend imperfectly and you have position post-flop";
+  else if (position === "CO") positionContext = "From the CO you're opening wide but tighter than BTN — three players behind, all of whom can wake up with a real hand";
+  else if (position === "HJ") positionContext = "From the HJ you should be more selective — four players behind, range tightens noticeably";
+  else if (position === "SB") positionContext = "From the SB only the BB is left, and you have half a blind invested — open very wide, including some shoves for balance";
+  else positionContext = `From ${position} with ${behind} players behind, your range should be tight and value-heavy`;
+
+  return {
+    setup: `${stackBB}bb in ${position} with ${cat} (${hand}). ${behind} player${behind === 1 ? "" : "s"} behind. Folded to you.`,
+    stack: stackContext,
+    position: positionContext,
+    icm: stage !== "CHIP_EV" ? `${stageInfo.label}: ${stageInfo.description}` : null,
+    question: "Raise (build a pot with skill edge), shove (max fold equity, no postflop), or fold (avoid a marginal spot)?",
+  };
+}
+
+export function openRaiseAfter(position, hand, stackBB, chosen, stage) {
+  const freq = getRfiFrequency(position, hand);
+  const grade = gradeRfiAction(chosen, freq);
+  const optimal = primaryAction(freq);
+  const verdict = grade === "exact" ? "correct" : grade === "close" ? "close" : "mistake";
+
+  // Build the freq display string
+  const freqParts = [];
+  if (freq.raise > 0) freqParts.push(`Raise ${Math.round(freq.raise * 100)}%`);
+  if (freq.shove > 0) freqParts.push(`Shove ${Math.round(freq.shove * 100)}%`);
+  if (freq.fold > 0) freqParts.push(`Fold ${Math.round(freq.fold * 100)}%`);
+  const freqString = freqParts.join(" · ");
+
+  let why;
+  if (grade === "exact") {
+    why = `Good — ${hand} from ${position} primarily plays as a ${optimal} (${Math.round(freq[optimal] * 100)}% of the time at this depth).`;
+  } else if (grade === "close") {
+    why = `Not the primary action, but defensible — GTO does ${chosen} ${Math.round(freq[chosen] * 100)}% of the time with ${hand} here. The most-frequent action is ${optimal} (${Math.round(freq[optimal] * 100)}%).`;
+  } else {
+    why = `${chosen} isn't part of the GTO strategy with ${hand} from ${position} at ${stackBB}bb. The right action is ${optimal} (${Math.round(freq[optimal] * 100)}%).`;
+  }
+
+  let lesson;
+  if (grade === "exact") {
+    lesson = "Locked in — keep building pattern recognition on similar spots.";
+  } else if (grade === "close") {
+    lesson = "Mixed strategies are real. Both 'right' actions exist for the same hand; the goal is recognizing which mix this hand is in, not picking 'the' answer.";
+  } else if (chosen === "fold" && optimal !== "fold") {
+    lesson = "Folding too tight is the most common beginner leak. If you're not in the range I just showed you, you're leaving money on the table.";
+  } else if (chosen === "shove" && optimal === "raise") {
+    lesson = "Shoving here flattens your strategy — you lose your skill edge by skipping postflop play. Save shoves for short stacks or premium hands at depth.";
+  } else {
+    lesson = "Range discipline matters more than any single hand. Review the range grid (button below) to see where this hand fits.";
+  }
+
+  return {
+    verdict, correct: optimal, why, lesson,
+    grade, freq, freqString,
+    max: null,
+    icmNote: stage !== "CHIP_EV"
+      ? `${ICM_STAGES[stage].label}: at depth, ICM mostly tightens the calling/3-betting tree more than the opening range itself.`
+      : null,
+  };
 }

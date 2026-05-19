@@ -1,5 +1,6 @@
 import { RANKS } from "../lib/handUtils.js";
 import { getMaxPushBB, getMaxCallBB, getMaxReshoveBB } from "../lib/decisionLogic.js";
+import { getRfiFrequency } from "../data/rfiRanges.js";
 
 const COLOR_LEGEND = [
   { c: "#2a2a2a", l: "Never" },
@@ -41,6 +42,12 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
     if (mode === "reshove") {
       const raiser = raiserPos || "CO";
       return getMaxReshoveBB(position, raiser, hand, stage, customMult);
+    }
+    if (mode === "openRaise") {
+      // Convert play frequency (raise + shove) into a 0-100 "intensity" for coloring.
+      // Multiply by 99 so 100% maps to "Always", 50% to mid range, etc.
+      const f = getRfiFrequency(position, hand);
+      return (f.raise + f.shove) * 99;
     }
     return 0;
   }

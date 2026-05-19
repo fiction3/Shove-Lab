@@ -7,6 +7,7 @@ export const TABLE_CONFIGS = {
     trainablePositions: ["SB"],
     callableFrom: ["BB"],
     reshovableFrom: ["BB"],
+    rfiTrainablePositions: ["SB"],
   },
   3: {
     label: "3-Max",
@@ -14,6 +15,7 @@ export const TABLE_CONFIGS = {
     trainablePositions: ["BTN", "SB"],
     callableFrom: ["SB", "BB"],
     reshovableFrom: ["SB", "BB"],
+    rfiTrainablePositions: ["BTN", "SB"],
   },
   6: {
     label: "6-Max",
@@ -21,6 +23,7 @@ export const TABLE_CONFIGS = {
     trainablePositions: ["UTG", "HJ", "CO", "BTN", "SB"],
     callableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
     reshovableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
+    rfiTrainablePositions: ["UTG", "HJ", "CO", "BTN", "SB"],
   },
   9: {
     label: "9-Max",
@@ -28,6 +31,7 @@ export const TABLE_CONFIGS = {
     trainablePositions: ["MP", "MP1", "HJ", "CO", "BTN", "SB"],
     callableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
     reshovableFrom: ["HJ", "CO", "BTN", "SB", "BB"],
+    rfiTrainablePositions: ["UTG", "UTG1", "MP", "MP1", "HJ", "CO", "BTN", "SB"],
   },
 };
 

@@ -12,7 +12,9 @@ import {
 import { deriveMultipliers } from "../lib/icm.js";
 import {
   pushBefore, pushAfter, callBefore, callAfter, reshoveBefore, reshoveAfter,
+  openRaiseBefore, openRaiseAfter,
 } from "../lib/reasoning.js";
+import { getRfiFrequency, gradeRfiAction, primaryAction } from "../data/rfiRanges.js";
 
 import TritonCard from "./TritonCard.jsx";
 import MiniTable from "./MiniTable.jsx";
@@ -23,6 +25,7 @@ import ICMSetup from "./ICMSetup.jsx";
 import LearnView from "./LearnView.jsx";
 import DrillsView from "./DrillsView.jsx";
 import RangePopover from "./RangePopover.jsx";
+import HandsView from "./HandsView.jsx";
 
 // ---------- Styles (kept inline for now, can extract later) ----------
 
@@ -68,9 +71,11 @@ function ModeTabs({ mode, onChange }) {
     <div style={{
       display: "flex", gap: 0, marginBottom: 18,
       border: "1px solid rgba(232,227,211,0.2)", borderRadius: 6, overflow: "hidden",
+      flexWrap: "wrap",
     }}>
       {[
-        { value: "push", label: "Open" },
+        { value: "openRaise", label: "Raise" },
+        { value: "push", label: "Shove" },
         { value: "call", label: "Call" },
         { value: "reshove", label: "Reshove" },
       ].map(t => {
@@ -97,6 +102,7 @@ function ViewTabs({ view, onChange }) {
     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
       {[
         { value: "trainer", label: "Trainer" },
+        { value: "hands", label: "Hands" },
         { value: "learn", label: "Learn" },
         { value: "drills", label: "Drills" },
         { value: "ranges", label: "Range Viewer" },
@@ -169,6 +175,7 @@ export default function PushFoldTrainer() {
 
   const before = useMemo(() => {
     if (mode === "push") return pushBefore(position, code, stack, seatCount, stage, customMults);
+    if (mode === "openRaise") return openRaiseBefore(position, code, stack, seatCount, stage);
     // For call/reshove modes, wait for villain to be set before computing reasoning.
     // (Brief state-transition window where mode flips but villain hasn't been re-rolled yet.)
     if (!villain) return null;
@@ -179,6 +186,7 @@ export default function PushFoldTrainer() {
   const after = useMemo(() => {
     if (!revealed || !chosen) return null;
     if (mode === "push") return pushAfter(position, code, stack, chosen, stage, customMults);
+    if (mode === "openRaise") return openRaiseAfter(position, code, stack, chosen, stage);
     if (!villain) return null;
     if (mode === "call") return callAfter(position, villain, code, stack, chosen, stage, customMults);
     return reshoveAfter(position, villain, code, stack, chosen, stage, customMults);
@@ -208,6 +216,7 @@ export default function PushFoldTrainer() {
     setSeatCount(n);
     const trainable = mode === "call" ? TABLE_CONFIGS[n].callableFrom
                     : mode === "reshove" ? TABLE_CONFIGS[n].reshovableFrom
+                    : mode === "openRaise" ? TABLE_CONFIGS[n].rfiTrainablePositions
                     : TABLE_CONFIGS[n].trainablePositions;
     const stillValid = lockedPosition && trainable.includes(lockedPosition);
     const newLocked = stillValid ? lockedPosition : null;
@@ -222,19 +231,29 @@ export default function PushFoldTrainer() {
 
   function decide(action) {
     if (revealed) return;
-    const correct = mode === "push" ? optimalPushAction(position, code, stack, stage, customMults)
-                  : mode === "call" ? optimalCallAction(position, villain, code, stack, stage, customMults)
-                  : optimalReshoveAction(position, villain, code, stack, stage, customMults);
+    let correct, isCorrect, grade;
+    if (mode === "openRaise") {
+      const freq = getRfiFrequency(position, code);
+      grade = gradeRfiAction(action, freq);
+      correct = primaryAction(freq);
+      // exact OR close both count as "correct" for the running session score
+      isCorrect = grade === "exact" || grade === "close";
+    } else {
+      correct = mode === "push" ? optimalPushAction(position, code, stack, stage, customMults)
+              : mode === "call" ? optimalCallAction(position, villain, code, stack, stage, customMults)
+              : optimalReshoveAction(position, villain, code, stack, stage, customMults);
+      isCorrect = action === correct;
+      grade = isCorrect ? "exact" : "wrong";
+    }
     setChosen(action);
     setRevealed(true);
-    const isCorrect = action === correct;
     setStats(s => ({
       correct: s.correct + (isCorrect ? 1 : 0),
       total: s.total + 1,
     }));
     setHistory(h => [...h, {
       mode, position, stage, hand: code, stack,
-      villain, chosen: action, optimal: correct, correct: isCorrect,
+      villain, chosen: action, optimal: correct, correct: isCorrect, grade,
       ts: Date.now(),
     }]);
   }
@@ -244,6 +263,7 @@ export default function PushFoldTrainer() {
   const positionOptions = useMemo(() => {
     const trainable = mode === "call" ? TABLE_CONFIGS[seatCount].callableFrom
                     : mode === "reshove" ? TABLE_CONFIGS[seatCount].reshovableFrom
+                    : mode === "openRaise" ? TABLE_CONFIGS[seatCount].rfiTrainablePositions
                     : TABLE_CONFIGS[seatCount].trainablePositions;
     return [
       { value: "RANDOM", label: "Random" },
@@ -255,9 +275,31 @@ export default function PushFoldTrainer() {
     value: k, label: v.label, title: v.description,
   }));
 
-  const action2 = mode === "call" ? "call" : "shove";
-  const action2Label = mode === "push" ? "Shove" : mode === "call" ? "Call" : "Reshove";
-  const action2Color = mode === "call" ? "#3a7d4c" : "#c8102e";
+  // Action buttons depend on mode.
+  //   push     → Fold, Shove
+  //   call     → Fold, Call
+  //   reshove  → Fold, Reshove (shove over a raise)
+  //   openRaise→ Fold, Raise, Shove (three options, frequency-graded)
+  const actions = mode === "openRaise"
+    ? [
+        { value: "fold",  label: "Fold",  color: "#6b6b6b" },
+        { value: "raise", label: "Raise", color: "#3a7d4c" },
+        { value: "shove", label: "Shove", color: "#c8102e" },
+      ]
+    : mode === "call"
+      ? [
+          { value: "fold", label: "Fold", color: "#6b6b6b" },
+          { value: "call", label: "Call", color: "#3a7d4c" },
+        ]
+      : mode === "reshove"
+        ? [
+            { value: "fold",  label: "Fold",    color: "#6b6b6b" },
+            { value: "shove", label: "Reshove", color: "#c8102e" },
+          ]
+        : [
+            { value: "fold",  label: "Fold",  color: "#6b6b6b" },
+            { value: "shove", label: "Shove", color: "#c8102e" },
+          ];
 
   return (
     <div style={{
@@ -376,7 +418,7 @@ export default function PushFoldTrainer() {
                   This hand
                 </div>
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: "#d4a13b" }}>
-                  {mode === "push"
+                  {mode === "push" || mode === "openRaise"
                     ? POSITION_LABELS[position]
                     : `${POSITION_LABELS[position]} vs ${villain || "villain"} ${mode === "call" ? "shove" : "raise"}`}
                 </div>
@@ -401,7 +443,7 @@ export default function PushFoldTrainer() {
                     Action
                   </div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, marginTop: 4 }}>
-                    {mode === "push" ? "Folded to you"
+                    {mode === "push" || mode === "openRaise" ? "Folded to you"
                       : mode === "call" ? (villain ? `${villain} shoves all-in` : "Villain shoves all-in")
                       : (villain ? `${villain} min-raises to 2bb` : "Villain min-raises to 2bb")}
                   </div>
@@ -431,15 +473,14 @@ export default function PushFoldTrainer() {
                 <TritonCard card={hand[1]} size={90}/>
               </div>
 
-              <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-                <button onClick={() => decide("fold")} disabled={revealed}
-                  style={actionBtn(revealed, chosen === "fold", after?.correct === "fold", "#6b6b6b")}>
-                  Fold
-                </button>
-                <button onClick={() => decide(action2)} disabled={revealed}
-                  style={actionBtn(revealed, chosen === action2, after?.correct === action2, action2Color)}>
-                  {action2Label}
-                </button>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+                {actions.map(a => (
+                  <button key={a.value}
+                    onClick={() => decide(a.value)} disabled={revealed}
+                    style={actionBtn(revealed, chosen === a.value, after?.correct === a.value, a.color)}>
+                    {a.label}
+                  </button>
+                ))}
               </div>
 
               {revealed && after && (
@@ -450,14 +491,23 @@ export default function PushFoldTrainer() {
                 }}>
                   <div style={{
                     fontFamily: "'Cormorant Garamond', serif", fontSize: 26,
-                    color: after.verdict === "correct" ? "#7fc69a" : "#e07a5f",
+                    color: after.verdict === "correct" ? "#7fc69a"
+                         : after.verdict === "close" ? "#d4a13b"
+                         : "#e07a5f",
                   }}>
-                    {after.verdict === "correct" ? "Correct" : "Mistake"}
+                    {after.verdict === "correct" ? "Correct"
+                     : after.verdict === "close" ? "Close"
+                     : "Mistake"}
                   </div>
                   <div style={{ opacity: 0.7, fontSize: 13, marginTop: 6 }}>
-                    Solver line: <strong style={{ color: "#d4a13b" }}>{after.correct.toUpperCase()}</strong>
-                    {" · "}
-                    Threshold: {after.max > 0 ? `${after.max.toFixed(1)}bb` : "never"}
+                    {mode === "openRaise" ? (
+                      <>GTO mix: <strong style={{ color: "#d4a13b" }}>{after.freqString}</strong></>
+                    ) : (
+                      <>
+                        Solver line: <strong style={{ color: "#d4a13b" }}>{after.correct.toUpperCase()}</strong>
+                        {after.max ? <> · Threshold: {after.max > 0 ? `${after.max.toFixed(1)}bb` : "never"}</> : null}
+                      </>
+                    )}
                   </div>
                   <button onClick={nextHand} style={{
                     marginTop: 16,
@@ -548,8 +598,13 @@ export default function PushFoldTrainer() {
                     )}
                     <p style={{
                       margin: "14px 0 0 0", padding: "12px 14px",
-                      background: after.verdict === "correct" ? "rgba(127,198,154,0.08)" : "rgba(224,122,95,0.08)",
-                      borderLeft: `2px solid ${after.verdict === "correct" ? "#7fc69a" : "#e07a5f"}`,
+                      background: after.verdict === "correct" ? "rgba(127,198,154,0.08)"
+                                : after.verdict === "close" ? "rgba(212,161,59,0.08)"
+                                : "rgba(224,122,95,0.08)",
+                      borderLeft: `2px solid ${
+                        after.verdict === "correct" ? "#7fc69a"
+                        : after.verdict === "close" ? "#d4a13b"
+                        : "#e07a5f"}`,
                       borderRadius: 4, fontSize: 12,
                     }}>
                       <strong>Takeaway:</strong> {after.lesson}
@@ -649,6 +704,10 @@ export default function PushFoldTrainer() {
 
         {view === "learn" && (
           <LearnView onJumpToDrill={jumpToDrill}/>
+        )}
+
+        {view === "hands" && (
+          <HandsView/>
         )}
 
         {view === "drills" && (
