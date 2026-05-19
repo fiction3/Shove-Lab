@@ -409,148 +409,187 @@ function Legend({ color, label }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Button rotation — 3 mini tables showing how the button moves each hand
+// Button rotation — ONE table with a rotation indicator showing how
+// positions shift over consecutive hands.
 // ─────────────────────────────────────────────────────────────────────
 export function ButtonRotation() {
-  // 4-seat mini tables. Players A, B, C, D in fixed seats. Button moves
-  // one seat to the left (clockwise from player's perspective) each hand.
-  // This teaches the rotation concept without 6-max clutter.
-  const tables = [
-    { label: "Hand 1", btnPlayer: "A", sb: "B", bb: "C" },
-    { label: "Hand 2", btnPlayer: "B", sb: "C", bb: "D" },
-    { label: "Hand 3", btnPlayer: "C", sb: "D", bb: "A" },
-  ];
-
+  // Single 6-seat table. Three players are highlighted with the current
+  // hand's roles (BTN/SB/BB). Below the table, we use small chip pills
+  // to indicate where those roles WILL move next hand.
+  // The whole concept becomes: "Look — the button is here this hand, but
+  // it moves one seat clockwise next hand."
   return (
-    <VisualFrame caption="Each hand, the button shifts one seat clockwise. After enough hands, every player takes a turn at every role — so the forced bets share evenly across the table.">
+    <VisualFrame caption="Each hand, the button shifts one seat clockwise — and the SB and BB shift with it. After enough hands, every player takes a turn at every position.">
       <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-        gap: 14,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
       }}>
-        {tables.map(t => <MiniRotationTable key={t.label} {...t}/>)}
+        <RotationTable/>
+        <RotationLegend/>
       </div>
     </VisualFrame>
   );
 }
 
-function MiniRotationTable({ label, btnPlayer, sb, bb }) {
-  // 4 seats laid out in a 3x3 grid: top, left, bottom, right around a central
-  // felt. Each seat is a colored disc with the player letter; the role label
-  // (BTN/SB/BB) sits below the disc as a colored chip.
-  const players = ["A", "B", "C", "D"];
-  const positionStyle = (p) => {
-    // Map player letter to grid cell. A=top, B=right, C=bottom, D=left.
-    const map = {
-      A: { gridArea: "top" },
-      B: { gridArea: "right" },
-      C: { gridArea: "bottom" },
-      D: { gridArea: "left" },
-    };
-    return map[p];
-  };
-  const roleFor = (p) => {
-    if (p === btnPlayer) return { tag: "BTN", color: "#d4a13b" };
-    if (p === sb)        return { tag: "SB",  color: "#9b8a4a" };
-    if (p === bb)        return { tag: "BB",  color: "#e85d75" };
-    return null;
-  };
+function RotationTable() {
+  // 6 seats positioned around an ellipse. Each seat shows current role
+  // (or just the seat letter) plus a small arrow indicating it will be
+  // a new role next hand.
+  const seats = [
+    // Layout: 6 seats around an oval.  Index 0 is "you", going clockwise.
+    { x: 175, y: 30,  label: "P1", current: "BTN", next: null,  highlight: true  }, // top
+    { x: 305, y: 80,  label: "P2", current: "SB",  next: "BTN", highlight: true  }, // upper-right
+    { x: 305, y: 170, label: "P3", current: "BB",  next: "SB",  highlight: true  }, // lower-right
+    { x: 175, y: 220, label: "P4", current: null,  next: "BB",  highlight: false }, // bottom
+    { x: 45,  y: 170, label: "P5", current: null,  next: null,  highlight: false }, // lower-left
+    { x: 45,  y: 80,  label: "P6", current: null,  next: null,  highlight: false }, // upper-left
+  ];
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <div style={{
-        fontSize: 10, letterSpacing: "0.22em",
-        textTransform: "uppercase", color: "#d4a13b",
-        fontWeight: 700, marginBottom: 10,
-      }}>
-        {label}
-      </div>
-      <div style={{
-        display: "grid",
-        gridTemplateAreas: `
-          ".    top    .    "
-          "left center right"
-          ".    bottom .    "
-        `,
-        gridTemplateColumns: "1fr 1fr 1fr",
-        gridTemplateRows: "auto auto auto",
-        gap: 6,
-        maxWidth: 170,
-        margin: "0 auto",
-        alignItems: "center",
-        justifyItems: "center",
-      }}>
-        {/* Felt circle in the centre */}
-        <div style={{
-          gridArea: "center",
-          width: 56, height: 56,
-          borderRadius: "50%",
-          background: "rgba(20,55,40,0.5)",
-          border: "1px solid rgba(212,161,59,0.25)",
-          position: "relative",
-        }}>
-          {/* Rotation arrow inside the felt */}
-          <svg viewBox="0 0 40 40" style={{
-            position: "absolute", inset: 4,
-            width: "calc(100% - 8px)", height: "calc(100% - 8px)",
-            opacity: 0.45,
-          }}>
-            <path d="M 12 20 A 8 8 0 1 1 28 20"
-              fill="none" stroke="#d4a13b" strokeWidth="1.5"/>
-            <polygon points="26,17 30,20 26,23" fill="#d4a13b"/>
-          </svg>
-        </div>
-        {/* Seats */}
-        {players.map(p => {
-          const role = roleFor(p);
-          return (
-            <div key={p} style={{
-              ...positionStyle(p),
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-            }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: "50%",
-                background: role ? role.color : "rgba(232,227,211,0.18)",
-                color: role ? "#0a1816" : "#e8e3d3",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12, fontWeight: 700,
-                fontFamily: "'Inter', sans-serif",
-                border: role && role.tag === "BTN" ? "2px solid #fafaf7" : "none",
-              }}>
-                {p}
-              </div>
-              {role && (
-                <div style={{
-                  fontSize: 8, letterSpacing: "0.15em",
-                  fontWeight: 700, color: role.color,
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  {role.tag}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <svg viewBox="0 0 350 250" style={{ width: "100%", maxWidth: 420, height: "auto" }}>
+      {/* Felt */}
+      <ellipse cx="175" cy="125" rx="125" ry="80"
+        fill="rgba(20,55,40,0.5)" stroke="rgba(212,161,59,0.25)" strokeWidth="1.5"/>
+
+      {/* Big rotation arrow inside the felt */}
+      <g opacity="0.6">
+        <path d="M 130 125 A 45 30 0 1 1 220 125"
+          fill="none" stroke="#d4a13b" strokeWidth="2"/>
+        <polygon points="215,118 226,125 215,132" fill="#d4a13b"/>
+        <text x="175" y="135" textAnchor="middle"
+          fontSize="9" fill="#d4a13b" fontWeight="700"
+          letterSpacing="2" fontFamily="'Inter', sans-serif">
+          ROTATION
+        </text>
+      </g>
+
+      {/* Seats */}
+      {seats.map((s, i) => {
+        const roleColor = s.current === "BTN" ? "#d4a13b"
+                        : s.current === "SB"  ? "#9b8a4a"
+                        : s.current === "BB"  ? "#e85d75"
+                        : "rgba(232,227,211,0.18)";
+        const textColor = s.current ? "#0a1816" : "#e8e3d3";
+        return (
+          <g key={i}>
+            {/* Seat disc */}
+            <circle cx={s.x} cy={s.y} r="18"
+              fill={roleColor}
+              stroke={s.current === "BTN" ? "#fafaf7" : "transparent"}
+              strokeWidth={s.current === "BTN" ? "2.5" : "0"}/>
+            {/* Current role text on the disc */}
+            {s.current ? (
+              <text x={s.x} y={s.y + 4} textAnchor="middle"
+                fontSize="11" fontWeight="800"
+                fill={textColor}
+                fontFamily="'Inter', sans-serif"
+                letterSpacing="0.5">
+                {s.current}
+              </text>
+            ) : (
+              <text x={s.x} y={s.y + 4} textAnchor="middle"
+                fontSize="11" fontWeight="700"
+                fill="#e8e3d3" opacity="0.7"
+                fontFamily="'Inter', sans-serif">
+                {s.label}
+              </text>
+            )}
+            {/* "Next hand: X" hint under the disc */}
+            {s.next && (
+              <text x={s.x} y={s.y + 36} textAnchor="middle"
+                fontSize="8" fill="rgba(232,227,211,0.55)"
+                fontFamily="'Inter', sans-serif"
+                letterSpacing="0.5">
+                next: {s.next}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function RotationLegend() {
+  return (
+    <div style={{
+      display: "flex", gap: 16, justifyContent: "center",
+      flexWrap: "wrap", fontSize: 10,
+    }}>
+      <Legend color="#d4a13b" label="BTN (button)"/>
+      <Legend color="#9b8a4a" label="SB (small blind)"/>
+      <Legend color="#e85d75" label="BB (big blind)"/>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Betting flow — the rhythm of a hand: deal → bet → next street → bet ...
+// Betting flow — the rhythm of a hand, with a small visual per step
 // ─────────────────────────────────────────────────────────────────────
 export function BettingFlow() {
+  // Each step has a visual thumbnail (Thumb), a label, and a one-line detail.
+  // The thumbnails reuse TritonCard at a small size, plus chip pills for
+  // betting/blinds steps.
   const steps = [
-    { label: "Blinds posted",      kind: "setup",  detail: "SB and BB put in chips" },
-    { label: "Hole cards dealt",   kind: "deal",   detail: "Each player gets 2 cards" },
-    { label: "Preflop betting",    kind: "bet",    detail: "Fold, call, or raise" },
-    { label: "Flop dealt",         kind: "deal",   detail: "3 community cards" },
-    { label: "Flop betting",       kind: "bet",    detail: "Check or bet" },
-    { label: "Turn dealt",         kind: "deal",   detail: "4th community card" },
-    { label: "Turn betting",       kind: "bet",    detail: "Check or bet" },
-    { label: "River dealt",        kind: "deal",   detail: "5th community card" },
-    { label: "River betting",      kind: "bet",    detail: "Final round" },
-    { label: "Showdown",           kind: "win",    detail: "Best 5-card hand wins" },
+    {
+      label: "Blinds posted",
+      detail: "SB and BB put in chips before any cards are dealt",
+      kind: "setup",
+      thumb: <ChipsThumb labels={["SB", "BB"]}/>,
+    },
+    {
+      label: "Hole cards dealt",
+      detail: "Each player gets 2 face-down cards",
+      kind: "deal",
+      thumb: <CardsThumb cards={[null, null]}/>,
+    },
+    {
+      label: "Preflop betting",
+      detail: "Fold, call, or raise",
+      kind: "bet",
+      thumb: <ChipsThumb labels={["bet"]}/>,
+    },
+    {
+      label: "Flop dealt",
+      detail: "3 community cards face up",
+      kind: "deal",
+      thumb: <CardsThumb cards={["Kh", "7c", "2s"]}/>,
+    },
+    {
+      label: "Flop betting",
+      detail: "Check, bet, or raise",
+      kind: "bet",
+      thumb: <ChipsThumb labels={["bet"]}/>,
+    },
+    {
+      label: "Turn dealt",
+      detail: "4th community card",
+      kind: "deal",
+      thumb: <CardsThumb cards={["Kh", "7c", "2s", "9d"]}/>,
+    },
+    {
+      label: "Turn betting",
+      detail: "Check, bet, or raise",
+      kind: "bet",
+      thumb: <ChipsThumb labels={["bet"]}/>,
+    },
+    {
+      label: "River dealt",
+      detail: "5th community card",
+      kind: "deal",
+      thumb: <CardsThumb cards={["Kh", "7c", "2s", "9d", "Qh"]}/>,
+    },
+    {
+      label: "River betting",
+      detail: "Final round of betting",
+      kind: "bet",
+      thumb: <ChipsThumb labels={["bet"]}/>,
+    },
+    {
+      label: "Showdown",
+      detail: "Both players reveal — best 5-card hand wins the pot",
+      kind: "win",
+      thumb: <ShowdownThumb/>,
+    },
   ];
 
   const colorFor = (kind) =>
@@ -560,23 +599,24 @@ export function BettingFlow() {
     : "#e85d75";
 
   return (
-    <VisualFrame caption="The rhythm of every hand: deal cards, then bet, then deal more cards, then bet — until someone wins by showdown or by everyone else folding.">
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <VisualFrame caption="The rhythm of every hand: cards dealt, then a round of betting, then more cards. Repeat until showdown — or until everyone else folds.">
+      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {steps.map((s, i) => (
           <div key={i} style={{
             display: "grid",
-            gridTemplateColumns: "32px 1fr",
+            gridTemplateColumns: "28px 1fr 130px",
             alignItems: "center",
             gap: 12,
-            padding: "8px 4px",
+            padding: "10px 4px",
           }}>
-            {/* Step number + connector */}
+            {/* Numbered dot with connector line */}
             <div style={{
               position: "relative",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              height: "100%",
+              alignSelf: "stretch",
+              minHeight: 50,
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: "50%",
@@ -586,6 +626,7 @@ export function BettingFlow() {
                 fontSize: 11, fontWeight: 700,
                 fontFamily: "'Inter', sans-serif",
                 zIndex: 1,
+                flexShrink: 0,
               }}>
                 {i + 1}
               </div>
@@ -600,17 +641,25 @@ export function BettingFlow() {
               )}
             </div>
             {/* Label + detail */}
-            <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+            <div>
               <div style={{
                 fontWeight: 600,
                 color: colorFor(s.kind),
                 fontSize: 13,
+                marginBottom: 2,
               }}>
                 {s.label}
               </div>
-              <div style={{ fontSize: 11, opacity: 0.6 }}>
+              <div style={{ fontSize: 11, opacity: 0.65, lineHeight: 1.4 }}>
                 {s.detail}
               </div>
+            </div>
+            {/* Visual thumbnail */}
+            <div style={{
+              display: "flex", justifyContent: "flex-end",
+              alignItems: "center",
+            }}>
+              {s.thumb}
             </div>
           </div>
         ))}
@@ -622,11 +671,81 @@ export function BettingFlow() {
         borderTop: "1px solid rgba(232,227,211,0.08)",
         flexWrap: "wrap", fontSize: 10,
       }}>
+        <Legend color="rgba(232,227,211,0.4)" label="Setup"/>
         <Legend color="#7fc69a" label="Cards dealt"/>
         <Legend color="#d4a13b" label="Betting round"/>
         <Legend color="#e85d75" label="Hand ends"/>
       </div>
     </VisualFrame>
+  );
+}
+
+// Tiny card row used by BettingFlow thumbnails. `null` = face-down.
+function CardsThumb({ cards }) {
+  return (
+    <div style={{ display: "flex", gap: 2 }}>
+      {cards.map((c, i) => (
+        c === null
+          ? <FaceDownMini key={i}/>
+          : <TritonCard key={i} card={c} size={26}/>
+      ))}
+    </div>
+  );
+}
+
+// A small face-down placeholder matching TritonCard's aspect ratio.
+function FaceDownMini() {
+  return (
+    <div style={{
+      width: 26, height: Math.round(26 * 1.4),
+      borderRadius: 3,
+      background: "linear-gradient(135deg, #5a1a1a 0%, #3a0f0f 100%)",
+      border: "1px solid rgba(212,161,59,0.3)",
+    }}/>
+  );
+}
+
+// Chip pill(s) used to represent blinds and betting rounds in BettingFlow.
+function ChipsThumb({ labels }) {
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+      {labels.map((lbl, i) => (
+        <div key={i} style={{
+          width: 28, height: 28, borderRadius: "50%",
+          background: "radial-gradient(circle at 35% 30%, #f4c668 0%, #d4a13b 50%, #8a6420 100%)",
+          border: "2px dashed rgba(255,255,255,0.4)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 8, fontWeight: 700,
+          color: "#3a2810",
+          fontFamily: "'Inter', sans-serif",
+          letterSpacing: "0.02em",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+        }}>
+          {lbl}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Showdown thumbnail: two players reveal their cards, "vs" between them.
+// No winner marker — the lesson explains the dealer/rules decide.
+function ShowdownThumb() {
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 1 }}>
+        <TritonCard card="Ah" size={20}/>
+        <TritonCard card="Kh" size={20}/>
+      </div>
+      <div style={{
+        fontSize: 8, opacity: 0.5, letterSpacing: "0.1em",
+        fontWeight: 700, fontFamily: "'Inter', sans-serif",
+      }}>vs</div>
+      <div style={{ display: "flex", gap: 1 }}>
+        <TritonCard card="Qd" size={20}/>
+        <TritonCard card="Qs" size={20}/>
+      </div>
+    </div>
   );
 }
 

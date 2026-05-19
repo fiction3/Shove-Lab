@@ -1,41 +1,41 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { DrillFrame, ChoiceButton, FeedbackBox, NextButton } from "./DrillShared.jsx";
+import { DrillFrame, ChoiceButton, NextButton } from "./DrillShared.jsx";
 import TritonCard from "../TritonCard.jsx";
 import useMediaQuery from "../../lib/useMediaQuery.js";
 
 // Sklansky / Chen-style hand strength ordering for heads-up preflop.
-// We use this as the "truth" for the ranking drill. Higher index = stronger.
-// Compressed list of the most commonly-confused borderline pairs.
+// Each entry: [strongerHand, weakerHand, equityPctOfStronger, explanation]
+// Equities are HU all-in preflop, from standard equity calculations.
 const STRENGTH_PAIRS = [
-  // [strongerHand, weakerHand, explanation]
-  ["AKs", "AKo", "Suited adds ~2% equity vs random; non-trivial over volume."],
-  ["AKo", "AQs", "Top pair top kicker dominates AQ family preflop."],
-  ["AQs", "AQo", "Suitedness premium on the same rank."],
-  ["AJs", "KQs", "Ace high beats king high in dominated spots; AJs ~52% vs KQs."],
-  ["KQs", "KJs", "Same suit + same king, kicker decides — Q kicker dominates J."],
-  ["AKo", "JJ", "Slight edge to JJ HU (~57-43), but AKo plays better multiway."],
-  ["AKs", "TT", "TT is a small favorite HU; AKs is the standard race partner."],
-  ["QQ", "AKo", "QQ is ~56% vs AKo — pair holds the edge."],
-  ["JJ", "AQs", "JJ ~54% vs AQs HU."],
-  ["TT", "AJs", "TT ~55% vs AJs HU."],
-  ["99", "AQo", "99 ~55% vs AQo — pair vs overcards classic."],
-  ["88", "ATs", "88 ~54% vs ATs HU."],
-  ["77", "A9s", "77 ~54% vs A9s — small pair edges out medium suited ace."],
-  ["66", "KQs", "66 is a ~53% favorite HU."],
-  ["55", "QJs", "55 ~52% vs QJs."],
-  ["44", "T9s", "44 ~53% vs T9s — pair vs suited connector."],
-  ["A5s", "A5o", "Suitedness adds a flush draw and ~2% equity."],
-  ["A5s", "K9s", "A high beats K high even with low kicker, suited equal."],
-  ["KTs", "K9o", "Both same king; suited + better kicker wins easily."],
-  ["KQo", "JTs", "Big card edges out connector ~55-45 HU."],
-  ["QJs", "Q9o", "Same Q, suited + better kicker — large edge."],
-  ["JTs", "J9s", "Connector edges gapper — both suited."],
-  ["T9s", "98s", "Higher connector wins."],
-  ["98s", "87s", "Higher connector wins."],
-  ["A2s", "K2s", "Ace high beats king high; both suited, dominant card decides."],
-  ["AJo", "KQo", "AJo ~57% vs KQo HU — dominating ace beats king-queen."],
-  ["AQo", "JJ", "JJ ~57% vs AQo — overpair vs two overs."],
-  ["KK", "AKs", "KK ~66% vs AKs — overpair vs two overs (better matchup for KK)."],
+  // [strongerHand, weakerHand, equityOfStronger, explanation]
+  ["AKs", "AKo", 52, "Same ranks, but suitedness adds ~2% equity from flush potential."],
+  ["AKo", "AQs", 56, "AK dominates AQ — when an A or K hits, AK is ahead."],
+  ["AQs", "AQo", 52, "Suitedness premium on the same rank."],
+  ["AJs", "KQs", 52, "Ace high beats king high in dominated spots."],
+  ["KQs", "KJs", 56, "Same suit + same king; Q kicker dominates J kicker."],
+  ["JJ", "AKo", 57, "Pair edges out two overcards in a coinflip."],
+  ["TT", "AKs", 54, "TT is a small favorite — the 'race' is real but the pair leads."],
+  ["QQ", "AKo", 56, "Overpair vs two overs — QQ holds the edge."],
+  ["JJ", "AQs", 54, "Overpair vs over+kicker is still ahead."],
+  ["TT", "AJs", 55, "Pocket Tens favored over AJs HU."],
+  ["99", "AQo", 55, "Small pair beats two overcards in a coinflip."],
+  ["88", "ATs", 54, "Pair holds slight edge over medium suited ace."],
+  ["77", "A9s", 54, "Small pair edges out medium suited ace."],
+  ["66", "KQs", 53, "Even small pairs beat unpaired big cards HU."],
+  ["55", "QJs", 52, "Barely — 55 is the smallest 'pair vs connector' favorite."],
+  ["44", "T9s", 53, "Pair beats suited connector slightly."],
+  ["A5s", "A5o", 52, "Suitedness adds a flush draw and ~2% equity."],
+  ["A5s", "K9s", 60, "Ace high crushes king high even with low kicker."],
+  ["KTs", "K9o", 65, "Same king; suited + better kicker is a big edge."],
+  ["KQo", "JTs", 55, "Big card edges out connector — KQ has higher pair potential."],
+  ["QJs", "Q9o", 67, "Dominated kickers + lost suitedness is brutal."],
+  ["JTs", "J9s", 66, "Higher connector, same suitedness."],
+  ["T9s", "98s", 59, "Higher connector wins."],
+  ["98s", "87s", 58, "Higher connector wins."],
+  ["A2s", "K2s", 60, "Ace high dominates king high; both suited."],
+  ["AJo", "KQo", 57, "AJo dominates KQo — when ace hits, AJ is ahead."],
+  ["JJ", "AQo", 57, "Pair vs two overs — JJ has the edge."],
+  ["KK", "AKs", 66, "Overpair crushes two overs in a coinflip."],
 ];
 
 function randomPair() {
@@ -65,7 +65,10 @@ export default function HandRankingDrill({ onAnswer }) {
   const left = pair[order[0]];
   const right = pair[order[1]];
   const strongerHand = pair[0];
-  const explanation = pair[2];
+  const weakerHand = pair[1];
+  const equityOfStronger = pair[2];
+  const equityOfWeaker = 100 - equityOfStronger;
+  const explanation = pair[3];
 
   const leftCards = useMemo(() => handToCards(left), [left]);
   const rightCards = useMemo(() => handToCards(right), [right]);
@@ -139,15 +142,114 @@ export default function HandRankingDrill({ onAnswer }) {
 
       {revealed && (
         <>
-          <FeedbackBox
-            grade={chosen === correctSide ? "exact" : "wrong"}
-            trueValue={strongerHand}
-            suffix=""
+          <EquityFeedback
+            isCorrect={chosen === correctSide}
+            strongerHand={strongerHand}
+            weakerHand={weakerHand}
+            equityOfStronger={equityOfStronger}
+            equityOfWeaker={equityOfWeaker}
             explanation={explanation}
           />
           <NextButton onClick={next}/>
         </>
       )}
     </DrillFrame>
+  );
+}
+
+/**
+ * Custom feedback block for the Hand Rankings drill — shows the verdict
+ * prominently, the two competing hands as a side-by-side equity bar,
+ * and a one-line explanation.
+ */
+function EquityFeedback({ isCorrect, strongerHand, weakerHand, equityOfStronger, equityOfWeaker, explanation }) {
+  const color = isCorrect ? "#7fc69a" : "#e07a5f";
+  const label = isCorrect ? "Correct" : "Off";
+  const bgColor = isCorrect ? "rgba(127,198,154,0.08)" : "rgba(224,122,95,0.08)";
+
+  return (
+    <div style={{
+      marginTop: 22, padding: 18,
+      background: bgColor,
+      borderLeft: `2px solid ${color}`,
+      borderRadius: 4,
+    }}>
+      {/* Verdict header */}
+      <div style={{
+        display: "flex", alignItems: "baseline", gap: 12,
+        marginBottom: 14, flexWrap: "wrap",
+      }}>
+        <span style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: 22, color, fontWeight: 600,
+        }}>
+          {label}
+        </span>
+        <span style={{ fontSize: 13, opacity: 0.7 }}>
+          The stronger hand is <strong style={{ color: "#d4a13b" }}>{strongerHand}</strong>
+        </span>
+      </div>
+
+      {/* Equity stat — two big numbers + a bar showing the split */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{
+          display: "flex", justifyContent: "space-between",
+          alignItems: "baseline", marginBottom: 6, gap: 12,
+        }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 22, fontWeight: 700,
+              color: "#7fc69a", letterSpacing: "-0.02em",
+            }}>
+              {equityOfStronger}%
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#d4a13b" }}>
+              {strongerHand}
+            </span>
+          </div>
+          <div style={{ fontSize: 11, opacity: 0.5, letterSpacing: "0.1em", fontWeight: 600 }}>
+            vs
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>
+              {weakerHand}
+            </span>
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 22, fontWeight: 700,
+              color: "rgba(232,227,211,0.7)", letterSpacing: "-0.02em",
+            }}>
+              {equityOfWeaker}%
+            </span>
+          </div>
+        </div>
+        {/* Visual bar showing the equity split */}
+        <div style={{
+          height: 6, borderRadius: 3, overflow: "hidden",
+          display: "flex",
+          background: "rgba(232,227,211,0.06)",
+        }}>
+          <div style={{
+            width: `${equityOfStronger}%`,
+            background: "linear-gradient(90deg, #7fc69a, #5a8a40)",
+          }}/>
+          <div style={{
+            width: `${equityOfWeaker}%`,
+            background: "rgba(232,227,211,0.18)",
+          }}/>
+        </div>
+        <div style={{ fontSize: 10, opacity: 0.5, marginTop: 6, fontStyle: "italic" }}>
+          Heads-up all-in equity, preflop
+        </div>
+      </div>
+
+      {/* Explanation */}
+      {explanation && (
+        <div style={{ fontSize: 13, lineHeight: 1.55, opacity: 0.88 }}>
+          {explanation}
+        </div>
+      )}
+    </div>
   );
 }
