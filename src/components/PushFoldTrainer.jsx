@@ -275,6 +275,29 @@ export default function PushFoldTrainer() {
     value: k, label: v.label, title: v.description,
   }));
 
+  // First-to-act preflop varies by table size:
+  //   HU (2-max): SB acts first preflop
+  //   3-max: BTN acts first preflop (then SB, then BB)
+  //   6-max/9-max: UTG acts first preflop
+  const firstToActPositions = {
+    2: "SB",
+    3: "BTN",
+    6: "UTG",
+    9: "UTG",
+  };
+  const isFirstToAct = position === firstToActPositions[seatCount];
+
+  // Action label depends on mode AND whether hero is first to act.
+  // - openRaise + first-to-act: "First to act preflop" (no one's folded yet)
+  // - openRaise/push + not first-to-act: "Folded to you" (others folded)
+  // - call: villain shoved
+  // - reshove: villain min-raised
+  let actionLabel;
+  if (mode === "call") actionLabel = villain ? `${villain} shoves all-in` : "Villain shoves all-in";
+  else if (mode === "reshove") actionLabel = villain ? `${villain} min-raises to 2bb` : "Villain min-raises to 2bb";
+  else if (isFirstToAct) actionLabel = "First to act preflop";
+  else actionLabel = "Folded to you";
+
   // Action buttons depend on mode.
   //   push     → Fold, Shove
   //   call     → Fold, Call
@@ -443,9 +466,7 @@ export default function PushFoldTrainer() {
                     Action
                   </div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, marginTop: 4 }}>
-                    {mode === "push" || mode === "openRaise" ? "Folded to you"
-                      : mode === "call" ? (villain ? `${villain} shoves all-in` : "Villain shoves all-in")
-                      : (villain ? `${villain} min-raises to 2bb` : "Villain min-raises to 2bb")}
+                    {actionLabel}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>

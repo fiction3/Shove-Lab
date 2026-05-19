@@ -181,6 +181,10 @@ export function openRaiseBefore(position, hand, stackBB, seatCount, stage) {
   const behind = playersBehind(position, seatCount);
   const stageInfo = ICM_STAGES[stage];
 
+  // Is hero the first to act preflop?
+  const firstToActMap = { 2: "SB", 3: "BTN", 6: "UTG", 9: "UTG" };
+  const isFirstToAct = position === firstToActMap[seatCount];
+
   let stackContext;
   if (stackBB <= 22) stackContext = "the bottom of the medium-stack range — raising and shoving both come into play, with shoves slightly more frequent on premium hands";
   else if (stackBB <= 30) stackContext = "the heart of the medium-stack RFI range — raising is your default, with a handful of premium hands mixing in shoves";
@@ -190,11 +194,19 @@ export function openRaiseBefore(position, hand, stackBB, seatCount, stage) {
   if (position === "BTN") positionContext = "From the BTN you have the widest opening range — both blinds defend imperfectly and you have position post-flop";
   else if (position === "CO") positionContext = "From the CO you're opening wide but tighter than BTN — three players behind, all of whom can wake up with a real hand";
   else if (position === "HJ") positionContext = "From the HJ you should be more selective — four players behind, range tightens noticeably";
-  else if (position === "SB") positionContext = "From the SB only the BB is left, and you have half a blind invested — open very wide, including some shoves for balance";
+  else if (position === "SB") positionContext = isFirstToAct
+    ? "From the SB you're first to act preflop in HU play — open very wide, including some shoves for balance"
+    : "From the SB only the BB is left, and you have half a blind invested — open wide, including some shoves for balance";
+  else if (position === "UTG" || position === "UTG1") positionContext = `From ${position} you're first to act preflop with ${behind} players behind. UTG opens the action and faces the most players, so your range here is the tightest — premium pairs, strong broadways, suited aces`;
   else positionContext = `From ${position} with ${behind} players behind, your range should be tight and value-heavy`;
 
+  // Phrase the setup correctly depending on whether hero opens the action.
+  const setupPhrase = isFirstToAct
+    ? "You're first to act preflop."
+    : "Folded to you.";
+
   return {
-    setup: `${stackBB}bb in ${position} with ${cat} (${hand}). ${behind} player${behind === 1 ? "" : "s"} behind. Folded to you.`,
+    setup: `${stackBB}bb in ${position} with ${cat} (${hand}). ${behind} player${behind === 1 ? "" : "s"} behind. ${setupPhrase}`,
     stack: stackContext,
     position: positionContext,
     icm: stage !== "CHIP_EV" ? `${stageInfo.label}: ${stageInfo.description}` : null,
