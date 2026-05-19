@@ -532,19 +532,42 @@ export default function PushFoldTrainer() {
                 </div>
               </div>
 
-              {(mode === "call" || mode === "reshove") && (
-                <div style={{ display: "flex", justifyContent: "center", gap: 2, marginBottom: 14, opacity: 0.6 }}>
-                  <TritonCard hidden size={60}/>
-                  <TritonCard hidden size={60}/>
+              {(mode === "call" || mode === "reshove" || mode === "threeBetDef") && (
+                <div style={{
+                  display: "flex", flexDirection: "column",
+                  alignItems: "center", marginBottom: 14,
+                }}>
+                  <div style={{
+                    fontSize: 9, letterSpacing: "0.25em",
+                    textTransform: "uppercase", opacity: 0.55,
+                    marginBottom: 6,
+                  }}>
+                    {villain || "Villain"}'s hand
+                  </div>
+                  <div style={{ display: "flex", gap: 2, opacity: 0.6 }}>
+                    <TritonCard hidden size={60}/>
+                    <TritonCard hidden size={60}/>
+                  </div>
                 </div>
               )}
 
               <div style={{
-                display: "flex", justifyContent: "center", gap: 2,
-                margin: (mode === "call" || mode === "reshove") ? "8px 0 36px 0" : "28px 0 36px 0",
+                display: "flex", flexDirection: "column",
+                alignItems: "center",
+                margin: (mode === "call" || mode === "reshove" || mode === "threeBetDef") ? "8px 0 36px 0" : "28px 0 36px 0",
               }}>
-                <TritonCard card={hand[0]} size={90}/>
-                <TritonCard card={hand[1]} size={90}/>
+                <div style={{
+                  fontSize: 9, letterSpacing: "0.25em",
+                  textTransform: "uppercase", opacity: 0.55,
+                  marginBottom: 6,
+                  color: "#d4a13b",
+                }}>
+                  Your hand
+                </div>
+                <div style={{ display: "flex", gap: 2 }}>
+                  <TritonCard card={hand[0]} size={90}/>
+                  <TritonCard card={hand[1]} size={90}/>
+                </div>
               </div>
 
               <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
