@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 
 import { TABLE_CONFIGS, POSITION_LABELS } from "../data/tableConfigs.js";
 import { ICM_STAGES } from "../data/icmStages.js";
+import useLocalStorage, { clearAllStoredData } from "../lib/useLocalStorage.js";
 
 import {
   handCode, randomHand, randomStack, randomPositionFor, randomVillainBefore, randomThreeBettorAfter,
@@ -142,12 +143,12 @@ function ViewTabs({ view, onChange }) {
 export default function PushFoldTrainer() {
   const [view, setView] = useState("trainer");
   const [mode, setMode] = useState("push");
-  const [stage, setStage] = useState("CHIP_EV");
-  const [seatCount, setSeatCount] = useState(6);
+  const [stage, setStage] = useLocalStorage("stage", "CHIP_EV");
+  const [seatCount, setSeatCount] = useLocalStorage("seatCount", 6);
   const [lockedPosition, setLockedPosition] = useState(null);
-  const [explanationsOn, setExplanationsOn] = useState(true);
+  const [explanationsOn, setExplanationsOn] = useLocalStorage("coaching", true);
 
-  const [icmState, setICMState] = useState({
+  const [icmState, setICMState] = useLocalStorage("icmState", {
     stacks: [12, 18, 22, 15, 25, 20],
     payouts: [1000, 600, 400, 250, 150, 100],
   });
@@ -162,17 +163,20 @@ export default function PushFoldTrainer() {
   const [villain, setVillain] = useState(null);
   const [revealed, setRevealed] = useState(false);
   const [chosen, setChosen] = useState(null);
-  const [stats, setStats] = useState({ correct: 0, total: 0 });
-  const [history, setHistory] = useState([]);
+  const [stats, setStats] = useLocalStorage("trainerStats", { correct: 0, total: 0 });
+  const [history, setHistory] = useLocalStorage("trainerHistory", []);
 
   // Drill state (separate history from trainer hands)
-  const [drillHistory, setDrillHistory] = useState([]);
+  const [drillHistory, setDrillHistory] = useLocalStorage("drillHistory", []);
   const [drillDeepLink, setDrillDeepLink] = useState(null);
   const [rangePopoverOpen, setRangePopoverOpen] = useState(false);
   const isMobile = useMediaQuery(768);
 
   function addDrillHistory(entry) {
-    setDrillHistory(h => [...h, entry]);
+    setDrillHistory(h => {
+      const next = [...h, entry];
+      return next.length > 1000 ? next.slice(-1000) : next;
+    });
   }
 
   function jumpToDrill(drillId) {
@@ -268,11 +272,15 @@ export default function PushFoldTrainer() {
       correct: s.correct + (isCorrect ? 1 : 0),
       total: s.total + 1,
     }));
-    setHistory(h => [...h, {
-      mode, position, stage, hand: code, stack,
-      villain, chosen: action, optimal: correct, correct: isCorrect, grade,
-      ts: Date.now(),
-    }]);
+    setHistory(h => {
+      const next = [...h, {
+        mode, position, stage, hand: code, stack,
+        villain, chosen: action, optimal: correct, correct: isCorrect, grade,
+        ts: Date.now(),
+      }];
+      // Cap at 1000 most-recent entries to keep localStorage bounded.
+      return next.length > 1000 ? next.slice(-1000) : next;
+    });
   }
 
   const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : null;
@@ -852,10 +860,19 @@ export default function PushFoldTrainer() {
         )}
 
         {view === "review" && (
-          <SessionReview history={history} onClear={() => {
-            setHistory([]);
-            setStats({ correct: 0, total: 0 });
-          }}/>
+          <SessionReview
+            history={history}
+            onClear={() => {
+              setHistory([]);
+              setStats({ correct: 0, total: 0 });
+            }}
+            onClearAll={() => {
+              clearAllStoredData();
+              // Reload so all useState defaults take effect cleanly without
+              // having to reset every individual field.
+              window.location.reload();
+            }}
+          />
         )}
 
         {view === "learn" && (

@@ -63,16 +63,36 @@ function BarStat({ label, value, total, color }) {
  * over-fold — these are different leaks), per-mode/position/stage accuracy,
  * and top-three weakest positions.
  */
-export default function SessionReview({ history, onClear }) {
+export default function SessionReview({ history, onClear, onClearAll }) {
+  function handleClearAll() {
+    const ok = window.confirm(
+      "Clear ALL stored data?\n\n" +
+      "This will delete:\n" +
+      "  • Trainer session stats and history\n" +
+      "  • Drill stats and history\n" +
+      "  • Saved preferences (coaching, ICM stage, table size, custom payouts)\n\n" +
+      "This cannot be undone."
+    );
+    if (ok) onClearAll?.();
+  }
   if (history.length === 0) {
     return (
       <div style={{ ...panelStyle, padding: 40, textAlign: "center" }}>
         <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, margin: 0 }}>
           No hands played yet
         </h3>
-        <p style={{ opacity: 0.6, marginTop: 12 }}>
+        <p style={{ opacity: 0.6, marginTop: 12, marginBottom: onClearAll ? 24 : 0 }}>
           Play some hands in the trainer to see your breakdown here.
         </p>
+        {onClearAll && (
+          <button onClick={handleClearAll} style={{
+            ...smallBtn,
+            color: "rgba(224,122,95,0.85)",
+            borderColor: "rgba(224,122,95,0.35)",
+          }}>
+            Clear all stored data
+          </button>
+        )}
       </div>
     );
   }
@@ -121,7 +141,18 @@ export default function SessionReview({ history, onClear }) {
             <BarStat label="Over-folded" value={overFolds} total={mistakes.length} color="#5a8a40"/>
           </div>
         </div>
-        <button onClick={onClear} style={{ ...smallBtn, marginTop: 16 }}>Clear session</button>
+        <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
+          <button onClick={onClear} style={smallBtn}>Clear session</button>
+          {onClearAll && (
+            <button onClick={handleClearAll} style={{
+              ...smallBtn,
+              color: "rgba(224,122,95,0.85)",
+              borderColor: "rgba(224,122,95,0.35)",
+            }}>
+              Clear all data
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={panelStyle}>
