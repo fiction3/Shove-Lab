@@ -179,6 +179,16 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
           const max = getMaxFor(hand);
           const isPair = i === j;
           const isHighlighted = hand === highlightHand;
+          const isActive = hovered?.hand === hand;
+          // Border priority: highlighted (trainer's current hand, gold) wins,
+          // then active (currently shown in tooltip/panel, white), then pair.
+          const border = isHighlighted ? "2px solid #ffd96a"
+            : isActive ? "2px solid #fafaf7"
+            : isPair ? "1px solid rgba(212,161,59,0.4)" : "none";
+          const boxShadow = isHighlighted
+            ? "0 0 0 2px rgba(255,217,106,0.4), 0 0 10px rgba(255,217,106,0.5)"
+            : isActive ? "0 0 0 2px rgba(250,250,247,0.35)"
+            : "none";
           return (
             <div key={`${i}-${j}`}
               data-hand={hand}
@@ -192,12 +202,10 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
                 color: isHighlighted ? "#fafaf7" : "#fafaf7",
                 fontFamily: "'Inter', sans-serif",
                 borderRadius: 2,
-                border: isHighlighted
-                  ? "2px solid #ffd96a"
-                  : isPair ? "1px solid rgba(212,161,59,0.4)" : "none",
-                boxShadow: isHighlighted ? "0 0 0 2px rgba(255,217,106,0.4), 0 0 10px rgba(255,217,106,0.5)" : "none",
+                border,
+                boxShadow,
                 position: "relative",
-                zIndex: isHighlighted ? 1 : 0,
+                zIndex: (isHighlighted || isActive) ? 1 : 0,
                 cursor: "pointer",
               }}
             >
