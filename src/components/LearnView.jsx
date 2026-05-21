@@ -3,6 +3,7 @@ import { LESSONS } from "../data/lessons.js";
 import { LESSON_VISUALS } from "./LessonVisuals.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
 import { track } from "../lib/analytics.js";
+import { useT } from "../lib/i18n.jsx";
 
 /**
  * Two-pane lesson reader. Used by both the Learn tab (strategy lessons) and
@@ -12,6 +13,7 @@ import { track } from "../lib/analytics.js";
  * Section types supported: prose | heading | example | calc | list
  */
 export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel = "Lessons" }) {
+  const { t } = useT();
   const [activeId, setActiveId] = useState(lessons[0].id);
   const active = lessons.find(l => l.id === activeId) || lessons[0];
   const isMobile = useMediaQuery(768);
@@ -156,7 +158,7 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
                   letterSpacing: "0.02em",
                 }}
               >
-                {showEli7 ? "Hide plain English ↑" : "Plain English"}
+                {showEli7 ? `${t("learn.hidePlainEnglish")} ↑` : t("learn.plainEnglish")}
               </button>
 
               {showEli7 && (
@@ -246,6 +248,7 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
 }
 
 function LessonNavButton({ lessons, activeId, direction, onClick }) {
+  const { t } = useT();
   const idx = lessons.findIndex(l => l.id === activeId);
   const target = lessons[idx + direction];
   if (!target) return <span style={{ flex: 1 }}/>;
@@ -261,7 +264,7 @@ function LessonNavButton({ lessons, activeId, direction, onClick }) {
       }}
     >
       <div style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.5 }}>
-        {direction > 0 ? "Next" : "Previous"}
+        {direction > 0 ? t("learn.next") : t("learn.previous")}
       </div>
       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, marginTop: 4 }}>
         {direction > 0 ? `${target.title} →` : `← ${target.title}`}

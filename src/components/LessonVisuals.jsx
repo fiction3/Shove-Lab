@@ -1,5 +1,6 @@
 import TritonCard from "./TritonCard.jsx";
 import MiniTable from "./MiniTable.jsx";
+import { useT } from "../lib/i18n.jsx";
 
 /**
  * Lesson visual registry. Each lesson section of type "visual" names one of
@@ -14,19 +15,20 @@ import MiniTable from "./MiniTable.jsx";
 // Hold'em hero — 2 hole cards + 5 community cards, labeled
 // ─────────────────────────────────────────────────────────────────────
 export function HoldemHero() {
+  const { t } = useT();
   // Show: 2 hole + 5 board = 7 cards available. Then below, the "best 5"
   // selection — 5 cards that make a straight, with the 2 unused shown
   // dimmed.  A real "ah, that's how the game works" moment.
   return (
-    <VisualFrame caption="From your 2 cards + the 5 on the board, you pick the best 5-card hand. The other 2 are just ignored.">
+    <VisualFrame caption={t("viz.hero.caption")}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
         {/* Step 1: All 7 available cards */}
         <div style={{ textAlign: "center" }}>
-          <SmallLabel>Step 1 · The 7 cards available to you</SmallLabel>
+          <SmallLabel>{t("viz.hero.step1")}</SmallLabel>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 9, opacity: 0.55, marginBottom: 4, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                Your hand
+                {t("viz.hero.yourHand")}
               </div>
               <div style={{ display: "flex", gap: 3 }}>
                 <TritonCard card="As" size={54}/>
@@ -35,7 +37,7 @@ export function HoldemHero() {
             </div>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 9, opacity: 0.55, marginBottom: 4, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                The board
+                {t("viz.hero.theBoard")}
               </div>
               <div style={{ display: "flex", gap: 3 }}>
                 <TritonCard card="Qd" size={54}/>
@@ -55,7 +57,7 @@ export function HoldemHero() {
 
         {/* Step 2: best 5 picked, 2 dimmed */}
         <div style={{ textAlign: "center" }}>
-          <SmallLabel>Step 2 · Pick the best 5 of those 7</SmallLabel>
+          <SmallLabel>{t("viz.hero.step2")}</SmallLabel>
           <div style={{ display: "flex", gap: 3, justifyContent: "center", alignItems: "flex-end", flexWrap: "wrap" }}>
             {/* The winning 5 — highlighted with gold ring */}
             {["As", "Kh", "Qd", "Jh", "Tc"].map((c, i) => (
@@ -82,10 +84,10 @@ export function HoldemHero() {
             fontFamily: "'Cormorant Garamond', serif",
             fontSize: 17, color: "#d4a13b", fontWeight: 600,
           }}>
-            A-K-Q-J-T · Straight to the Ace
+            {t("viz.hero.straight")}
           </div>
           <div style={{ fontSize: 11, opacity: 0.55, marginTop: 4 }}>
-            (The 5 and 2 are dropped — they don't help this hand)
+            {t("viz.hero.dropped")}
           </div>
         </div>
       </div>
@@ -97,14 +99,15 @@ export function HoldemHero() {
 // Deal sequence — preflop → flop → turn → river
 // ─────────────────────────────────────────────────────────────────────
 export function DealSequence() {
+  const { t } = useT();
   const stages = [
-    { label: "Preflop",  cards: [],                              note: "Just your two hole cards. Betting round 1." },
-    { label: "Flop",     cards: ["Qc", "Jd", "Th"],              note: "Three community cards. Betting round 2." },
-    { label: "Turn",     cards: ["Qc", "Jd", "Th", "4s"],        note: "Fourth community card. Betting round 3." },
-    { label: "River",    cards: ["Qc", "Jd", "Th", "4s", "7c"],  note: "Final community card. Betting round 4." },
+    { label: "Preflop",  cards: [],                              note: t("viz.deal.preflop") },
+    { label: "Flop",     cards: ["Qc", "Jd", "Th"],              note: t("viz.deal.flop") },
+    { label: "Turn",     cards: ["Qc", "Jd", "Th", "4s"],        note: t("viz.deal.turn") },
+    { label: "River",    cards: ["Qc", "Jd", "Th", "4s", "7c"],  note: t("viz.deal.river") },
   ];
   return (
-    <VisualFrame caption="The hand unfolds in four stages, each followed by betting.">
+    <VisualFrame caption={t("viz.deal.caption")}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {stages.map(s => (
           <div key={s.label} style={{
@@ -129,7 +132,7 @@ export function DealSequence() {
                 <div style={{
                   fontSize: 12, fontStyle: "italic", opacity: 0.5, marginBottom: 4,
                 }}>
-                  (No community cards yet)
+                  {t("viz.deal.noCards")}
                 </div>
               )}
               <div style={{ fontSize: 12, opacity: 0.7 }}>{s.note}</div>
@@ -145,8 +148,9 @@ export function DealSequence() {
 // Table positions — reuses MiniTable to show 6-max with BTN/SB/BB highlighted
 // ─────────────────────────────────────────────────────────────────────
 export function BlindsAndButton() {
+  const { t } = useT();
   return (
-    <VisualFrame caption="The Button moves one seat to the left each hand. SB and BB are forced to bet before any cards are dealt.">
+    <VisualFrame caption={t("viz.blinds.caption")}>
       <div style={{ maxWidth: 320, margin: "0 auto" }}>
         <MiniTable
           seatCount={6}
@@ -160,9 +164,9 @@ export function BlindsAndButton() {
         display: "flex", gap: 18, justifyContent: "center",
         marginTop: 12, fontSize: 11, flexWrap: "wrap",
       }}>
-        <Legend color="#d4a13b" label="BTN — Button (acts last)"/>
-        <Legend color="#e85d75" label="BB — Big Blind (forced bet)"/>
-        <Legend color="rgba(232,227,211,0.4)" label="SB — Small Blind"/>
+        <Legend color="#d4a13b" label={t("viz.blinds.btn")}/>
+        <Legend color="#e85d75" label={t("viz.blinds.bb")}/>
+        <Legend color="rgba(232,227,211,0.4)" label={t("viz.blinds.sb")}/>
       </div>
     </VisualFrame>
   );
@@ -172,31 +176,32 @@ export function BlindsAndButton() {
 // Dangerous boards — three example flops with the threats highlighted
 // ─────────────────────────────────────────────────────────────────────
 export function DangerousBoards() {
+  const { t } = useT();
   const boards = [
     {
-      title: "Flush draw board",
+      title: t("viz.danger.flush.title"),
       cards: ["Kh", "9h", "4h"],
       villainCards: ["Ah", "2h"],
-      villainMakes: "Flush — five hearts",
-      threat: "Three hearts on board. Anyone holding two hearts has a flush.",
+      villainMakes: t("viz.danger.flush.makes"),
+      threat: t("viz.danger.flush.threat"),
     },
     {
-      title: "Straight draw board",
+      title: t("viz.danger.straight.title"),
       cards: ["Tc", "9d", "8s"],
       villainCards: ["Jh", "Qc"],
-      villainMakes: "Straight — 8-9-T-J-Q",
-      threat: "Three connected ranks. Anyone holding two cards that fit the run has a straight.",
+      villainMakes: t("viz.danger.straight.makes"),
+      threat: t("viz.danger.straight.threat"),
     },
     {
-      title: "Paired board",
+      title: t("viz.danger.paired.title"),
       cards: ["7s", "7d", "Kc"],
       villainCards: ["7h", "Tc"],
-      villainMakes: "Three of a kind — trip 7s",
-      threat: "Two sevens on board. Anyone holding the third 7 has three of a kind.",
+      villainMakes: t("viz.danger.paired.makes"),
+      threat: t("viz.danger.paired.threat"),
     },
   ];
   return (
-    <VisualFrame caption="Memorize these three patterns. Almost every postflop trap comes from one of them.">
+    <VisualFrame caption={t("viz.danger.caption")}>
       <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
         {boards.map(b => (
           <div key={b.title} style={{
@@ -219,7 +224,7 @@ export function DangerousBoards() {
               {/* Left: the board */}
               <div>
                 <div style={{ fontSize: 9, opacity: 0.55, marginBottom: 4, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                  The board
+                  {t("viz.danger.theBoard")}
                 </div>
                 <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
                   {b.cards.map((c, i) => <TritonCard key={i} card={c} size={42}/>)}
@@ -230,7 +235,7 @@ export function DangerousBoards() {
               {/* Right: villain hand */}
               <div>
                 <div style={{ fontSize: 9, opacity: 0.55, marginBottom: 4, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                  If villain has
+                  {t("viz.danger.ifVillain")}
                 </div>
                 <div style={{ display: "flex", gap: 3 }}>
                   {b.villainCards.map((c, i) => <TritonCard key={i} card={c} size={42}/>)}
@@ -256,6 +261,7 @@ export function DangerousBoards() {
 // MTT payout curve — bar chart showing how prizes skew to the top
 // ─────────────────────────────────────────────────────────────────────
 export function MTTPayoutCurve() {
+  const { t } = useT();
   // Realistic MTT payout shape: 1st gets ~25%, 2nd ~17%, then steep decay
   const payouts = [
     { rank: "1st",  pct: 25, color: "#d4a13b" },
@@ -265,12 +271,12 @@ export function MTTPayoutCurve() {
     { rank: "5th",  pct: 6,  color: "#6e4a2c" },
     { rank: "10th", pct: 3,  color: "#5a3a28" },
     { rank: "30th", pct: 1.5, color: "#4a3024" },
-    { rank: "70th (min cash)", pct: 1, color: "#3a2820" },
+    { rank: t("viz.payout.minCash"), pct: 1, color: "#3a2820" },
   ];
   const max = Math.max(...payouts.map(p => p.pct));
 
   return (
-    <VisualFrame caption="A typical MTT payout structure. First place gets ~25× what min-cashers get, even though the player skill gap isn't 25× as wide.">
+    <VisualFrame caption={t("viz.payout.caption")}>
       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
         {payouts.map(p => (
           <div key={p.rank} style={{
@@ -313,20 +319,21 @@ export function MTTPayoutCurve() {
 // Hand rankings quick reference — top 5 hands a beginner sees most
 // ─────────────────────────────────────────────────────────────────────
 export function HandRankingsQuick() {
+  const { t } = useT();
   const hands = [
-    { name: "Royal Flush",     cards: ["As", "Ks", "Qs", "Js", "Ts"], note: "Best possible hand. Vanishingly rare." },
-    { name: "Straight Flush",  cards: ["9h", "8h", "7h", "6h", "5h"], note: "Five consecutive cards of the same suit." },
-    { name: "Four of a Kind",  cards: ["Qs", "Qh", "Qd", "Qc", "2s"], note: "All four of one rank." },
-    { name: "Full House",      cards: ["Kh", "Kd", "Kc", "8s", "8h"], note: "Three of a kind plus a pair." },
-    { name: "Flush",           cards: ["Ah", "Th", "8h", "5h", "2h"], note: "Five cards of the same suit (not in sequence)." },
-    { name: "Straight",        cards: ["Tc", "9h", "8d", "7s", "6h"], note: "Five consecutive cards of mixed suits." },
-    { name: "Three of a Kind", cards: ["7s", "7h", "7d", "Kc", "2s"], note: "Three cards of the same rank. Also called \"trips\" or \"a set\"." },
-    { name: "Two Pair",        cards: ["Ah", "Ad", "9s", "9c", "4h"], note: "Two pairs of different ranks." },
-    { name: "One Pair",        cards: ["Js", "Jh", "Kc", "8d", "3s"], note: "Two cards of the same rank." },
-    { name: "High Card",       cards: ["Ah", "Td", "8s", "5c", "2h"], note: "Nothing else — wins by the highest single card." },
+    { name: "Royal Flush",     cards: ["As", "Ks", "Qs", "Js", "Ts"], note: t("viz.rankings.royalFlush") },
+    { name: "Straight Flush",  cards: ["9h", "8h", "7h", "6h", "5h"], note: t("viz.rankings.straightFlush") },
+    { name: "Four of a Kind",  cards: ["Qs", "Qh", "Qd", "Qc", "2s"], note: t("viz.rankings.fourOfAKind") },
+    { name: "Full House",      cards: ["Kh", "Kd", "Kc", "8s", "8h"], note: t("viz.rankings.fullHouse") },
+    { name: "Flush",           cards: ["Ah", "Th", "8h", "5h", "2h"], note: t("viz.rankings.flush") },
+    { name: "Straight",        cards: ["Tc", "9h", "8d", "7s", "6h"], note: t("viz.rankings.straight") },
+    { name: "Three of a Kind", cards: ["7s", "7h", "7d", "Kc", "2s"], note: t("viz.rankings.threeOfAKind") },
+    { name: "Two Pair",        cards: ["Ah", "Ad", "9s", "9c", "4h"], note: t("viz.rankings.twoPair") },
+    { name: "One Pair",        cards: ["Js", "Jh", "Kc", "8d", "3s"], note: t("viz.rankings.onePair") },
+    { name: "High Card",       cards: ["Ah", "Td", "8s", "5c", "2h"], note: t("viz.rankings.highCard") },
   ];
   return (
-    <VisualFrame caption="The complete hand ranking, strongest to weakest. Memorizing this is the first homework of poker.">
+    <VisualFrame caption={t("viz.rankings.caption")}>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {hands.map((h, i) => (
           <div key={h.name} style={{
@@ -413,13 +420,14 @@ function Legend({ color, label }) {
 // positions shift over consecutive hands.
 // ─────────────────────────────────────────────────────────────────────
 export function ButtonRotation() {
+  const { t } = useT();
   // Single 6-seat table. Three players are highlighted with the current
   // hand's roles (BTN/SB/BB). Below the table, we use small chip pills
   // to indicate where those roles WILL move next hand.
   // The whole concept becomes: "Look — the button is here this hand, but
   // it moves one seat clockwise next hand."
   return (
-    <VisualFrame caption="Each hand, the button shifts one seat clockwise — and the SB and BB shift with it. After enough hands, every player takes a turn at every position.">
+    <VisualFrame caption={t("viz.rotation.caption")}>
       <div style={{
         display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
       }}>
@@ -510,14 +518,15 @@ function RotationTable() {
 }
 
 function RotationLegend() {
+  const { t } = useT();
   return (
     <div style={{
       display: "flex", gap: 16, justifyContent: "center",
       flexWrap: "wrap", fontSize: 10,
     }}>
-      <Legend color="#d4a13b" label="BTN (button)"/>
-      <Legend color="#9b8a4a" label="SB (small blind)"/>
-      <Legend color="#e85d75" label="BB (big blind)"/>
+      <Legend color="#d4a13b" label={t("viz.rotation.btn")}/>
+      <Legend color="#9b8a4a" label={t("viz.rotation.sb")}/>
+      <Legend color="#e85d75" label={t("viz.rotation.bb")}/>
     </div>
   );
 }
@@ -526,67 +535,68 @@ function RotationLegend() {
 // Betting flow — the rhythm of a hand, with a small visual per step
 // ─────────────────────────────────────────────────────────────────────
 export function BettingFlow() {
+  const { t } = useT();
   // Each step has a visual thumbnail (Thumb), a label, and a one-line detail.
   // The thumbnails reuse TritonCard at a small size, plus chip pills for
   // betting/blinds steps.
   const steps = [
     {
-      label: "Blinds posted",
-      detail: "SB and BB put in chips before any cards are dealt",
+      label: t("viz.flow.blindsPosted"),
+      detail: t("viz.flow.blindsPosted.d"),
       kind: "setup",
       thumb: <ChipsThumb labels={["SB", "BB"]}/>,
     },
     {
-      label: "Hole cards dealt",
-      detail: "Each player gets 2 face-down cards",
+      label: t("viz.flow.holeCards"),
+      detail: t("viz.flow.holeCards.d"),
       kind: "deal",
       thumb: <CardsThumb cards={[null, null]}/>,
     },
     {
-      label: "Preflop betting",
-      detail: "Fold, call, or raise",
+      label: t("viz.flow.preflopBet"),
+      detail: t("viz.flow.preflopBet.d"),
       kind: "bet",
       thumb: <ChipsThumb labels={["bet"]}/>,
     },
     {
-      label: "Flop dealt",
-      detail: "3 community cards face up",
+      label: t("viz.flow.flopDealt"),
+      detail: t("viz.flow.flopDealt.d"),
       kind: "deal",
       thumb: <CardsThumb cards={["Kh", "7c", "2s"]}/>,
     },
     {
-      label: "Flop betting",
-      detail: "Check, bet, or raise",
+      label: t("viz.flow.flopBet"),
+      detail: t("viz.flow.flopBet.d"),
       kind: "bet",
       thumb: <ChipsThumb labels={["bet"]}/>,
     },
     {
-      label: "Turn dealt",
-      detail: "4th community card",
+      label: t("viz.flow.turnDealt"),
+      detail: t("viz.flow.turnDealt.d"),
       kind: "deal",
       thumb: <CardsThumb cards={["Kh", "7c", "2s", "9d"]}/>,
     },
     {
-      label: "Turn betting",
-      detail: "Check, bet, or raise",
+      label: t("viz.flow.turnBet"),
+      detail: t("viz.flow.turnBet.d"),
       kind: "bet",
       thumb: <ChipsThumb labels={["bet"]}/>,
     },
     {
-      label: "River dealt",
-      detail: "5th community card",
+      label: t("viz.flow.riverDealt"),
+      detail: t("viz.flow.riverDealt.d"),
       kind: "deal",
       thumb: <CardsThumb cards={["Kh", "7c", "2s", "9d", "Qh"]}/>,
     },
     {
-      label: "River betting",
-      detail: "Final round of betting",
+      label: t("viz.flow.riverBet"),
+      detail: t("viz.flow.riverBet.d"),
       kind: "bet",
       thumb: <ChipsThumb labels={["bet"]}/>,
     },
     {
-      label: "Showdown",
-      detail: "Both players reveal — best 5-card hand wins the pot",
+      label: t("viz.flow.showdown"),
+      detail: t("viz.flow.showdown.d"),
       kind: "win",
       thumb: <ShowdownThumb/>,
     },
@@ -599,7 +609,7 @@ export function BettingFlow() {
     : "#e85d75";
 
   return (
-    <VisualFrame caption="The rhythm of every hand: cards dealt, then a round of betting, then more cards. Repeat until showdown — or until everyone else folds.">
+    <VisualFrame caption={t("viz.flow.caption")}>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {steps.map((s, i) => (
           <div key={i} style={{
@@ -671,10 +681,10 @@ export function BettingFlow() {
         borderTop: "1px solid rgba(232,227,211,0.08)",
         flexWrap: "wrap", fontSize: 10,
       }}>
-        <Legend color="rgba(232,227,211,0.4)" label="Setup"/>
-        <Legend color="#7fc69a" label="Cards dealt"/>
-        <Legend color="#d4a13b" label="Betting round"/>
-        <Legend color="#e85d75" label="Hand ends"/>
+        <Legend color="rgba(232,227,211,0.4)" label={t("viz.flow.legend.setup")}/>
+        <Legend color="#7fc69a" label={t("viz.flow.legend.cardsDealt")}/>
+        <Legend color="#d4a13b" label={t("viz.legend.bettingRound")}/>
+        <Legend color="#e85d75" label={t("viz.flow.legend.handEnds")}/>
       </div>
     </VisualFrame>
   );

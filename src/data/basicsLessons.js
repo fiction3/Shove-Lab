@@ -10,7 +10,7 @@ export const BASICS_LESSONS = [
     subtitle: "The basic idea, in plain English",
     estimatedMinutes: 4,
     sections: [
-      { type: "prose", text: "Welcome. If you've never played poker, this is the right page to start. We'll explain what Texas Hold'em actually is, what you're trying to do, and why it's interesting. No jargon yet — we'll add words as we need them." },
+      { type: "prose", text: "Welcome. If you've never played No-Limit Texas Hold'em, this is the right page to start. We'll explain what Texas Hold'em actually is, what you're trying to do, and why it's interesting. No jargon yet — we'll add words as we need them." },
       { type: "visual", visual: "holdem-hero" },
       { type: "heading", text: "The simplest version" },
       { type: "prose", text: "You and a group of other players each get two cards that only you can see. Then over the course of the hand, five more cards get placed face-up in the middle of the table — these are shared by everyone. You make the best possible five-card poker hand by combining your two private cards with the five shared cards. Highest hand wins the pot." },

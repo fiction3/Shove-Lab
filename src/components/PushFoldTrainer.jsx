@@ -36,6 +36,8 @@ import RangeGridIcon from "./RangeGridIcon.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
 import DonateModal from "./DonateModal.jsx";
 import { track } from "../lib/analytics.js";
+import { useT, useLanguage, LANGUAGES } from "../lib/i18n.jsx";
+import { getBasicsLessons } from "../data/i18n/getBasicsLessons.js";
 
 // Short, plain-language description of what each trainer mode practices.
 // Shown under the mode tabs so the labels (especially "Reshove") are never
@@ -121,21 +123,22 @@ function ModeTabs({ mode, onChange }) {
 }
 
 function ViewTabs({ view, onChange }) {
+  const { t } = useT();
   return (
     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
       {[
-        { value: "basics", label: "Basics" },
-        { value: "hands", label: "Hands" },
-        { value: "learn", label: "Learn" },
-        { value: "drills", label: "Drills" },
-        { value: "trainer", label: "Trainer" },
-        { value: "review", label: "Session Review" },
-        { value: "ranges", label: "Range Viewer" },
-        { value: "icm", label: "ICM Setup" },
-      ].map(t => {
-        const active = view === t.value;
+        { value: "basics", label: t("tab.basics") },
+        { value: "hands", label: t("tab.hands") },
+        { value: "learn", label: t("tab.learn") },
+        { value: "drills", label: t("tab.drills") },
+        { value: "trainer", label: t("tab.trainer") },
+        { value: "review", label: t("tab.review") },
+        { value: "ranges", label: t("tab.ranges") },
+        { value: "icm", label: t("tab.icm") },
+      ].map(tab => {
+        const active = view === tab.value;
         return (
-          <button key={t.value} onClick={() => onChange(t.value)}
+          <button key={tab.value} onClick={() => onChange(tab.value)}
             style={{
               background: active ? "rgba(212,161,59,0.15)" : "transparent",
               color: active ? "#d4a13b" : "rgba(232,227,211,0.6)",
@@ -145,7 +148,7 @@ function ViewTabs({ view, onChange }) {
               fontSize: 12, letterSpacing: "0.18em",
               textTransform: "uppercase", fontWeight: 600,
             }}>
-            {t.label}
+            {tab.label}
           </button>
         );
       })}
@@ -158,6 +161,7 @@ function ViewTabs({ view, onChange }) {
 // which holds the Buy Me a Coffee link and crypto options.
 function SupportLink({ onClick }) {
   const [hover, setHover] = useState(false);
+  const { t } = useT();
   return (
     <button
       onClick={onClick}
@@ -180,8 +184,42 @@ function SupportLink({ onClick }) {
       title="If Shove·Lab helps you, you can support its development"
     >
       <span style={{ color: hover ? "#e85d75" : "rgba(232,180,180,0.7)", fontSize: 12 }}>♥</span>
-      Donate if you like
+      {t("donate.button")}
     </button>
+  );
+}
+
+// Compact language switcher (EN / SV …). Cycles through available languages
+// with a small pill, keeping the header uncluttered.
+function LangSwitcher({ lang, onChange }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div style={{ display: "flex", gap: 2, marginBottom: 6 }}>
+      {LANGUAGES.map(l => {
+        const active = l.code === lang;
+        return (
+          <button
+            key={l.code}
+            onClick={() => onChange(l.code)}
+            title={l.label}
+            style={{
+              cursor: "pointer",
+              border: `1px solid ${active ? "rgba(212,161,59,0.5)" : "rgba(232,227,211,0.18)"}`,
+              background: active ? "rgba(212,161,59,0.12)" : "transparent",
+              color: active ? "#d4a13b" : "rgba(232,227,211,0.5)",
+              borderRadius: 6,
+              padding: "5px 9px",
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+              fontFamily: "inherit",
+              textTransform: "uppercase",
+              transition: "all 0.15s",
+            }}
+          >
+            {l.code}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -198,6 +236,9 @@ export default function PushFoldTrainer() {
   const [lockedPosition, setLockedPosition] = useState(null);
   const [explanationsOn, setExplanationsOn] = useLocalStorage("coaching", true);
   const [donateOpen, setDonateOpen] = useState(false);
+  const { t } = useT();
+  const { lang, setLang } = useLanguage();
+  const basicsLessons = useMemo(() => getBasicsLessons(lang), [lang]);
 
   const [icmState, setICMState] = useLocalStorage("icmState", {
     stacks: [12, 18, 22, 15, 25, 20],
@@ -421,7 +462,16 @@ export default function PushFoldTrainer() {
         display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "baseline",
         flexWrap: "wrap", gap: 12,
       }}>
-        <div>
+        <div
+          onClick={() => {
+            // Reload the whole app and land on Basics. We write the persisted
+            // "view" first (the app reads this on load), then do a full reload.
+            try { window.localStorage.setItem("shovelab.view", JSON.stringify("basics")); } catch {}
+            window.location.assign("/");
+          }}
+          style={{ cursor: "pointer" }}
+          title={t("header.tagline")}
+        >
           <div style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",
             fontSize: isMobile ? 24 : 30, fontWeight: 600, letterSpacing: "-0.01em",
@@ -429,7 +479,7 @@ export default function PushFoldTrainer() {
             Shove<span style={{ color: "#d4a13b" }}>·</span>Lab
           </div>
           <div style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.55, marginTop: 2 }}>
-            MTT Trainer · Nash + ICM
+            {t("header.tagline")}
           </div>
         </div>
         {view === "trainer" && (
@@ -474,7 +524,10 @@ export default function PushFoldTrainer() {
         gap: 16, flexWrap: "wrap",
       }}>
         <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); track("tab-view", { tab: v }); }}/>
-        <SupportLink onClick={() => { setDonateOpen(true); track("donate-opened"); }}/>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <LangSwitcher lang={lang} onChange={setLang}/>
+          <SupportLink onClick={() => { setDonateOpen(true); track("donate-opened"); }}/>
+        </div>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -964,7 +1017,7 @@ export default function PushFoldTrainer() {
         )}
 
         {view === "basics" && (
-          <LearnView lessons={BASICS_LESSONS} listLabel="Basics"/>
+          <LearnView lessons={basicsLessons} listLabel={t("learn.basicsList")}/>
         )}
 
         {view === "hands" && (
