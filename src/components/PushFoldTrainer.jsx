@@ -112,12 +112,12 @@ function ViewTabs({ view, onChange }) {
     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
       {[
         { value: "basics", label: "Basics" },
-        { value: "trainer", label: "Trainer" },
         { value: "hands", label: "Hands" },
         { value: "learn", label: "Learn" },
         { value: "drills", label: "Drills" },
-        { value: "ranges", label: "Range Viewer" },
+        { value: "trainer", label: "Trainer" },
         { value: "review", label: "Session Review" },
+        { value: "ranges", label: "Range Viewer" },
         { value: "icm", label: "ICM Setup" },
       ].map(t => {
         const active = view === t.value;
@@ -143,7 +143,10 @@ function ViewTabs({ view, onChange }) {
 // ---------- Main ----------
 
 export default function PushFoldTrainer() {
-  const [view, setView] = useState("trainer");
+  // Persist the last-used tab so returning users land where they left off.
+  // First-time visitors (no saved value) start on Basics — the natural entry
+  // point for someone new to the app.
+  const [view, setView] = useLocalStorage("view", "basics");
   const [mode, setMode] = useState("push");
   const [stage, setStage] = useLocalStorage("stage", "CHIP_EV");
   const [seatCount, setSeatCount] = useLocalStorage("seatCount", 6);
