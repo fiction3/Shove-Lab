@@ -198,7 +198,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
                 background: colorFor(max),
                 aspectRatio: "1",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 10, fontWeight: 700,
+                fontSize: isMobile ? 10 : 13, fontWeight: 700,
                 color: isHighlighted ? "#fafaf7" : "#fafaf7",
                 fontFamily: "'Inter', sans-serif",
                 borderRadius: 2,
@@ -213,7 +213,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
               {max > 0 && max < 99 && (
                 <div style={{
                   position: "absolute", bottom: 1, right: 2,
-                  fontSize: 7, opacity: 0.7, fontWeight: 400,
+                  fontSize: isMobile ? 7 : 9, opacity: 0.7, fontWeight: 400,
                   pointerEvents: "none",
                 }}>
                   {max.toFixed(0)}
