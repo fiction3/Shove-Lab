@@ -10,7 +10,7 @@
 // SETUP: paste your real Umami website ID into UMAMI_WEBSITE_ID below.
 // Leave it as the placeholder to disable analytics entirely (harmless).
 
-const UMAMI_WEBSITE_ID = "6eef6fa2-4731-44d6-a8ca-bc16ff89df3a"; // Umami website UUID for shove-lab.vercel.app
+const UMAMI_WEBSITE_ID = "6eef6fa2-4731-44d6-a8ca-bc16ff89df3a"; // Umami website UUID for shovelab.com
 const UMAMI_SRC = "https://cloud.umami.is/script.js";      // ← change only if self-hosting
 
 // Inject the Umami script once, after the app has mounted. Safe to call

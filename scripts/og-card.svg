@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c1d1a"/>
+      <stop offset="100%" stop-color="#081512"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="38%" r="55%">
+      <stop offset="0%" stop-color="#11302b"/>
+      <stop offset="100%" stop-color="#081512" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- subtle top + bottom rules -->
+  <rect x="80" y="120" width="1040" height="2" fill="#d4a13b" opacity="0.25"/>
+  <rect x="80" y="508" width="1040" height="2" fill="#d4a13b" opacity="0.25"/>
+
+  <!-- wordmark -->
+  <text x="600" y="295" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="104" font-weight="600" fill="#f3efe2">
+    Shove<tspan fill="#d4a13b">·</tspan>Lab
+  </text>
+
+  <!-- tagline -->
+  <text x="600" y="365" text-anchor="middle"
+        font-family="Georgia, serif" font-size="34" fill="#cdd6cf" opacity="0.85">
+    Free poker trainer &amp; tutorial for beginners
+  </text>
+
+  <!-- small uppercase descriptor -->
+  <text x="600" y="92" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="22" letter-spacing="7" fill="#d4a13b" opacity="0.8">
+    LEARN · DRILL · PLAY
+  </text>
+
+  <!-- bottom descriptor -->
+  <text x="600" y="556" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="22" letter-spacing="5" fill="#cdd6cf" opacity="0.7">
+    HAND RANKINGS · POT ODDS · ICM · PUSH / FOLD
+  </text>
+
+  <!-- decorative card pips -->
+  <text x="475" y="445" text-anchor="middle" font-family="Georgia, serif" font-size="60" fill="#d4a13b" opacity="0.9">♠</text>
+  <text x="555" y="445" text-anchor="middle" font-family="Georgia, serif" font-size="60" fill="#c8102e" opacity="0.9">♥</text>
+  <text x="635" y="445" text-anchor="middle" font-family="Georgia, serif" font-size="60" fill="#3a86c8" opacity="0.9">♦</text>
+  <text x="715" y="445" text-anchor="middle" font-family="Georgia, serif" font-size="60" fill="#3a9d5c" opacity="0.9">♣</text>
+</svg>
