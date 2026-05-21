@@ -80,10 +80,10 @@ export default function PotOddsDrill({ onAnswer }) {
       note: "Divide both sides by your call amount to put it in X:1 form.",
     },
     {
-      label: "Step 3 — These are the pot odds",
-      formula: `pot odds = ${correctLabel}`,
-      value: null,
-      note: `As a percentage: required equity = (your call) / (pot after your call) = ${spot.bet} / ${spot.pot + 2 * spot.bet} = ${requiredEquity}%.`,
+      label: "Step 3 — Turn the ratio into a percentage",
+      formula: `final pot = ${spot.pot + spot.bet} + ${spot.bet} = ${spot.pot + 2 * spot.bet}bb`,
+      value: `${spot.bet} / ${spot.pot + 2 * spot.bet} = ${requiredEquity}%`,
+      note: `The ratio (${correctLabel}) compares the ${spot.pot + spot.bet}bb you can win to your ${spot.bet}bb call. To get the percentage you need to win, add your own call to the pot (${spot.pot + spot.bet} + ${spot.bet} = ${spot.pot + 2 * spot.bet}bb final pot), then divide your call by that total. Both describe the same break-even point.`,
     },
   ];
 
