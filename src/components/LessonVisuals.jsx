@@ -877,17 +877,20 @@ export function ShowdownExample({
 }) {
   const showHero = Array.isArray(hero) && hero.length > 0;
   const showOpp = Array.isArray(opp) && opp.length > 0;
+  const showBoard = Array.isArray(board) && board.length > 0;
 
   return (
     <VisualFrame caption={caption}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {/* Shared board */}
-        <div style={{ textAlign: "center" }}>
-          <SmallLabel>{boardLabel}</SmallLabel>
-          <div style={{ display: "flex", gap: 3, justifyContent: "center", flexWrap: "wrap" }}>
-            {board.map((c, i) => <TritonCard key={i} card={c} size={42}/>)}
+        {showBoard && (
+          <div style={{ textAlign: "center" }}>
+            <SmallLabel>{boardLabel}</SmallLabel>
+            <div style={{ display: "flex", gap: 3, justifyContent: "center", flexWrap: "wrap" }}>
+              {board.map((c, i) => <TritonCard key={i} card={c} size={42}/>)}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Player hand(s), if any */}
         {(showHero || showOpp) && (
@@ -977,6 +980,35 @@ function PlayerHand({ label, cards, made, isWinner, showWinBadge = true }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Hand trio — a row of small labeled hands, for "here are some example
+// hands" cases (e.g. junk hands beginners overplay). Each entry:
+//   { cards: ["Qh","7c"], label: "Q7 offsuit" }
+// ─────────────────────────────────────────────────────────────────────
+export function HandTrio({ hands = [], caption }) {
+  return (
+    <VisualFrame caption={caption}>
+      <div style={{
+        display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap",
+      }}>
+        {hands.map((h, i) => (
+          <div key={i} style={{ textAlign: "center" }}>
+            <div style={{ display: "flex", gap: 3, justifyContent: "center", marginBottom: 6 }}>
+              {h.cards.map((c, j) => <TritonCard key={j} card={c} size={44}/>)}
+            </div>
+            <div style={{
+              fontSize: 12, fontWeight: 600, color: "rgba(232,227,211,0.8)",
+              fontFamily: "'Inter', sans-serif",
+            }}>
+              {h.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </VisualFrame>
+  );
+}
+
 export const LESSON_VISUALS = {
   "holdem-hero":       HoldemHero,
   "deal-sequence":     DealSequence,
@@ -989,4 +1021,5 @@ export const LESSON_VISUALS = {
   "pot-odds-price":    PotOddsPrice,
   "break-even-bar":    BreakEvenBar,
   "showdown-example":  ShowdownExample,
+  "hand-trio":         HandTrio,
 };
