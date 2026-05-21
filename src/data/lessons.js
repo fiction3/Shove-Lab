@@ -15,6 +15,12 @@ export const LESSONS = [
     title: "Position",
     subtitle: "Why where you sit is more important than what you hold",
     estimatedMinutes: 4,
+    eli7: [
+      "Position just means: when it's your turn to act, how many people still have to decide after you? The later you act, the better — because you get to see what everyone else does before you commit any chips.",
+      "Picture asking a question in a group where everyone answers out loud one at a time. If you go last, you've heard every other answer first — a huge advantage. If you go first, you're guessing blind. Poker position is exactly that.",
+      "The 'button' is the best seat because you act last after the flop. The seats that have to act first (and the forced blind bets) are the worst spots — you're committing chips with the least information.",
+      "Practical takeaway: you can play more hands, and weaker hands, from late position than from early position. The exact same two cards can be a fold up front and a fine play on the button.",
+    ],
     sections: [
       { type: "prose", text: "Position is the single most leveraged variable in No-Limit Hold'em. The same hand played from the button is worth more than from under the gun — not by a little, by a lot. Understanding why is the foundation of everything that follows in this trainer." },
       { type: "heading", text: "The mechanical advantage" },
@@ -36,11 +42,11 @@ export const LESSONS = [
     estimatedMinutes: 6,
     eli7: [
       "Strip away the poker words and pot odds is just a price check, the same one you'd do at a betting window. Someone is offering you a deal: put in a small amount now, and if you win you collect a much bigger pile. The only question is whether the prize is big enough to justify the price.",
-      "Say there's $30 on the table and it costs you $10 to stay in the hand. You're risking $10 to win $30 — three dollars back for every one you put in. You don't need to win every time for that to be a good bet. You just need to win often enough that the wins cover the losses.",
-      "Good deal: you risk a little to win a lot (like $1 to win $9). Even if you only win now and then, you come out ahead, because each win is large and each loss is small. You can take this deal with a weak hand.",
-      "Fair deal: you risk $1 to win $3. Worth it if you have a reasonable chance — better than one in four. You'd want a hand with some real potential.",
-      "Bad deal: you risk $1 to win $1. Only worth it if you're confident you'll win more than half the time. Otherwise, keep your money and wait for a better spot.",
-      "That's the whole idea: the more you can win compared to what you put in, the weaker a hand you can profitably play. A big prize for a small price means you can call wide; a small prize for a big price means you need a strong hand.",
+      "Say there's 30bb on the table and it costs you 10bb to stay in. How many times bigger is the prize than the price? Divide: 30 ÷ 10 = 3. So you get 3 back for every 1 you put in — written as 3:1. (Check it the other way: 10 × 3 = 30.)",
+      "To turn that into 'how often must I win?', add your own call to the pile first: 30 + 10 = 40bb total. Your share is your call divided by that total: 10 ÷ 40 = 0.25, which is 25 out of 100, or 25%. So you only need to win about 1 time in 4.",
+      "Good deal: you risk a little to win a lot (say 1 to win 9, which is 9 ÷ 1 = 9, so 9:1). Even winning now and then leaves you ahead, because each win is large and each loss is small. You can take this with a weak hand.",
+      "Bad deal: you risk 1 to win 1 (1 ÷ 1 = 1, so 1:1). Now you need to win more than half the time. Otherwise keep your chips and wait for a better spot.",
+      "The whole idea: the more you can win compared to what you put in, the weaker a hand you can profitably play. Big prize for a small price means call wide; small prize for a big price means you need a strong hand.",
     ],
     sections: [
       { type: "prose", text: "Imagine a friend offers you a bet. You put in $4. If you win, you get $12. You don't win every time — but is this a good deal? Pot odds is just the poker way of answering that exact question. It's not scary math, it's a fairness check." },
@@ -67,6 +73,12 @@ export const LESSONS = [
     title: "Required Equity",
     subtitle: "The flip side of pot odds — what hand strength do you need?",
     estimatedMinutes: 4,
+    eli7: [
+      "Pot odds and required equity are two ways of asking the same thing. Pot odds ask 'what's the price?' Required equity asks 'how often do I need to win to make that price worth it?' Same math, flipped around.",
+      "Here's the recipe. You're calling some amount into a pot. Add your call to the pot to get the final total, then divide your call by that total. That's the share of the time you need to win.",
+      "Example: you call 6bb and the pot becomes 18bb total. Divide: 6 ÷ 18 = 0.33, which is 33 out of 100, or 33%. So your hand needs to win at least 33 times out of 100 against what your opponent might have.",
+      "Why it matters: a hand can LOOK good (like top pair) but still be a fold if it doesn't win often enough for the price you're being charged. The hand isn't bad — the price is bad. Spotting that is a big skill jump.",
+    ],
     sections: [
       { type: "prose", text: "Pot odds tell you the price. Required equity tells you the threshold. They're the same calculation read from different directions, and being fluent in both makes the math instant at the table." },
       { type: "heading", text: "The shift in framing" },
@@ -84,6 +96,14 @@ export const LESSONS = [
     title: "Hand vs Hand Equity",
     subtitle: "The matchups every player should know cold",
     estimatedMinutes: 6,
+    eli7: [
+      "'Equity' is just your share of the pot if the hand ran to the end many times. If your hand wins 80 times out of 100, you have 80% equity. That's all the percentage means.",
+      "A few matchups happen over and over, so it's worth knowing them by feel:",
+      "Big pair vs small pair (like AA vs KK): the big one wins about 80 out of 100. The small pair is in deep trouble.",
+      "A pair vs two bigger cards (like TT vs AK): close to a coin flip — the pair wins about 55 out of 100. This is the classic 'race.'",
+      "Same top card, weaker kicker (like AK vs AQ): the better kicker wins about 73 out of 100. Sharing a card and having the worse second card hurts a lot.",
+      "The surprise worth remembering: small pairs hold up shockingly well against two big cards. Even 22 vs AK is basically a coin flip. That's why short-stack all-ins with little pairs are routine.",
+    ],
     sections: [
       { type: "prose", text: "You'll never know villain's exact hand, but you should know the equity of common matchups instantly. These are the building blocks: every range-vs-range calculation is just a weighted average of these underlying matchups." },
       { type: "heading", text: "The big four shapes" },
@@ -108,6 +128,13 @@ export const LESSONS = [
     title: "Outs & The Rule of 4 and 2",
     subtitle: "Fast equity estimation on the flop and turn",
     estimatedMinutes: 4,
+    eli7: [
+      "An 'out' is any card still in the deck that would turn your hand into a winner. Step one is always just counting them.",
+      "Common counts: a flush draw (four of a suit, need one more) has 9 outs. An open-ended straight draw has 8. A gutshot (needing one specific rank in the middle) has 4.",
+      "Once you know your outs, there's a shortcut to turn them into a rough win chance. On the flop (two cards still coming), multiply by 4. On the turn (one card coming), multiply by 2.",
+      "Example: a flush draw on the flop has 9 outs. 9 × 4 = 36, so about a 36% chance to hit by the end — roughly 36 times out of 100. On the turn it'd be 9 × 2 = 18, about 18%.",
+      "That's it. Count the cards that help you, multiply by 4 on the flop or 2 on the turn, and you have a fast estimate of how often you'll get there.",
+    ],
     sections: [
       { type: "prose", text: "An out is a card that improves your hand to a likely winner. Counting outs and converting them to equity is the most common math you'll do postflop, and the Rule of 4 and 2 makes it instant." },
       { type: "heading", text: "The rule" },
@@ -129,6 +156,13 @@ export const LESSONS = [
     title: "Fold Equity",
     subtitle: "The hidden source of EV in every shove",
     estimatedMinutes: 5,
+    eli7: [
+      "When you go all-in, two things can happen: your opponent folds, or they call. 'Fold equity' is just the value you get from the times they fold — you win the chips already in the middle without even showing your cards.",
+      "This is why short stacks shove so often. You're not hoping to win a showdown half the time. You're hoping they fold a lot, and collecting the free chips when they do.",
+      "Example: you shove 10bb to win a 1.5bb pot. If your opponent folds 60 times out of 100, you scoop that 1.5bb for free most of the time. That cushion means you only need to win about 28 out of 100 of the times you DO get called.",
+      "And if they fold even more — say 80 out of 100 — you need to win only about 10 of the called times. That's almost any two cards. The more they fold, the weaker a hand you can shove.",
+      "The catch: fold equity disappears when you're the one calling (no one left to fold) or when your opponent is already too committed to fold. Knowing when it's gone stops you from shoving into someone who can't get away.",
+    ],
     sections: [
       { type: "prose", text: "Fold equity is the chunk of EV you get from making villain fold. It's why short-stack play looks so aggressive: shoving 10bb into a 2bb pot is profitable not because your hand has 50% equity when called, but because villain folds enough to make the dead money worth more than the risk." },
       { type: "heading", text: "The breakeven formula" },
@@ -148,6 +182,13 @@ export const LESSONS = [
     title: "ICM Basics",
     subtitle: "Why tournament chips aren't cash",
     estimatedMinutes: 6,
+    eli7: [
+      "In a cash game, a chip is worth exactly its value — win 10 chips, you're 10 chips richer, simple. In a tournament, chips are only worth the prize money they eventually turn into, and that link is bent.",
+      "The key idea: doubling your chips does NOT double your prize money. Going from average to double-average might raise your share of the prize pool by, say, a half — not a full double. So chips you win are worth a bit less than the chips you'd lose.",
+      "Example: four players left, equal stacks, prizes of $1000 / $600 / $400 / $250. Split evenly that's about $562 of expected money each. If you double your stack, your expected money might climb to around $850 — a nice jump, but not to $1125 (which would be a true doubling).",
+      "What this means at the table: because losing chips hurts more than winning them helps, you should be more careful about risking your whole stack — especially near a pay jump like the bubble. This mostly makes your CALLING tighter.",
+      "A hand you'd happily call with for pure chips can become a fold when real prize money is on the line. That's not 'playing scared' — it's correctly valuing the chips for what they're actually worth.",
+    ],
     sections: [
       { type: "prose", text: "A tournament chip and a cash-game chip aren't worth the same thing. In a cash game, every chip is worth its face value — a 10bb pot won is 10bb of cash earned. In a tournament, chips translate to a share of the prize pool, and that translation is nonlinear. Doubling your stack does not double your tournament equity." },
       { type: "heading", text: "The diminishing-returns curve" },
@@ -167,6 +208,12 @@ export const LESSONS = [
     title: "Short-Stack Strategy",
     subtitle: "Synthesizing position, odds, equity, fold equity, and ICM",
     estimatedMinutes: 5,
+    eli7: [
+      "When your stack is short (under about 20 big blinds), most decisions simplify to one question: shove all-in, or fold? Calling and fancy plays mostly go away. That's actually good news — fewer options means clearer thinking.",
+      "Before you act, run a quick mental checklist: How many chips do I have? How many players still act after me? What does my position let me get away with? Is a pay jump (like the bubble) coming up?",
+      "The pieces you've learned all feed into this: position tells you how risky your spot is, fold equity tells you how often you'll just steal the blinds, hand-vs-hand equity tells you how you do when called, and ICM tells you whether prize-money pressure should make you tighter.",
+      "The big mindset shift: short-stack poker isn't about waiting for great cards. It's about shoving at the right moments — when folds are likely and the chips in the middle are worth grabbing — and folding cleanly when they're not.",
+    ],
     sections: [
       { type: "prose", text: "Everything you've read connects in the short-stack shove-or-fold decision. This lesson is the synthesis." },
       { type: "heading", text: "The pre-decision checklist" },

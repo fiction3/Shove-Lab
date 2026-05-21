@@ -239,6 +239,19 @@ export default function OutsDrill({ onAnswer }) {
                         { label: "Discrepancy", formula: `${eqInfo.approx} − ${eqInfo.exact}`, value: `= ${eqInfo.error}%`, note: "Rule of 2 is very accurate — usually within ~0.5%." },
                       ]
                 }
+                eli7={
+                  spot.street === "flop"
+                    ? [
+                        `An "out" is a card that turns your hand into a winner. You have ${trueOuts} of them.`,
+                        `There are two cards still to come (turn and river), so the quick trick is to multiply your outs by 4: ${trueOuts} × 4 = ${trueOuts * 4}. That's roughly ${trueOuts * 4}% — a ${trueOuts * 4} in 100 chance of hitting.`,
+                        `The exact answer is ${eqInfo.exact}%, so the trick is off by only ${Math.abs(eqInfo.error)}% — close enough to use at the table.`,
+                      ]
+                    : [
+                        `An "out" is a card that turns your hand into a winner. You have ${trueOuts} of them.`,
+                        `Only one card is left to come (the river), so the quick trick is to multiply your outs by 2: ${trueOuts} × 2 = ${trueOuts * 2}. That's roughly ${trueOuts * 2}% — a ${trueOuts * 2} in 100 chance of hitting.`,
+                        `The exact answer is ${eqInfo.exact}%, so the trick is off by only ${Math.abs(eqInfo.error)}% — very accurate on the turn.`,
+                      ]
+                }
               />
               <NextButton onClick={next}/>
             </>

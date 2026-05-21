@@ -109,6 +109,12 @@ export default function FoldEquityDrill({ onAnswer }) {
                 note: "Below this, the shove loses on average. Above it, the shove prints.",
               },
             ]}
+            eli7={[
+              `Two things can happen when you shove: villain folds, or villain calls. You win the ${spot.pot}bb already in the middle every time they fold — for free, no cards needed.`,
+              `Villain folds ${spot.foldFreq} times out of 100. So a big chunk of the time you just collect that dead money. That cushion means you don't need a great hand for the times you DO get called.`,
+              `When you do get called, you're risking ${spot.risk}bb to win ${spot.risk + spot.pot}bb. After accounting for how often you steal it outright, the math says you only need to win about ${breakeven} times out of 100 (${breakeven}%) in those called spots to break even.`,
+              `The lesson: the more often villain folds, the lower that number gets — which is why shoving can be profitable even with hands that aren't strong.`,
+            ]}
           />
           <NextButton onClick={next}/>
         </>

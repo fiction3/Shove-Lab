@@ -139,6 +139,17 @@ export default function HandVsHandDrill({ onAnswer }) {
                 <strong>{heroHand}</strong> has <strong>{trueEq}%</strong> equity vs <strong>{villainHand}</strong> heads-up preflop ({(100 - trueEq).toFixed(1)}% for villain).
               </>
             }
+            eli7={[
+              `"Equity" here just means: if these two hands ran all the way to the end ${100} times, how many would ${heroHand} win? The answer is about ${trueEq} of them — so ${trueEq}%.`,
+              `That leaves ${(100 - trueEq).toFixed(0)} for ${villainHand} (100 − ${trueEq} = ${(100 - trueEq).toFixed(0)}).`,
+              trueEq >= 80
+                ? `${trueEq}% is a huge lead — this is a hand that's crushing the other (think a big pair against undercards).`
+                : trueEq >= 60
+                ? `${trueEq}% is a comfortable lead, but not a lock — the other hand still wins sometimes.`
+                : trueEq >= 45
+                ? `Around ${trueEq}% is close to a coin flip — both hands win a meaningful share.`
+                : `At ${trueEq}%, ${heroHand} is actually the underdog here — it wins less than half the time.`,
+            ]}
           />
           <NextButton onClick={next}/>
         </>

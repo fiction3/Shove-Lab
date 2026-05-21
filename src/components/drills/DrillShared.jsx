@@ -153,7 +153,7 @@ export function FeedbackBox({ grade, trueValue, explanation, suffix, mathWalkthr
                 fontSize: 11, letterSpacing: "0.05em",
                 fontWeight: 600, fontFamily: "inherit",
               }}>
-                {showEli7 ? "Hide simple version ↑" : "Explain simply"}
+                {showEli7 ? "Hide plain English ↑" : "Plain English"}
               </button>
             )}
           </div>

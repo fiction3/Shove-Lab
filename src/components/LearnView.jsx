@@ -129,7 +129,7 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
                   letterSpacing: "0.02em",
                 }}
               >
-                {showEli7 ? "Hide simple version ↑" : "Explain simply"}
+                {showEli7 ? "Hide plain English ↑" : "Plain English"}
               </button>
 
               {showEli7 && (

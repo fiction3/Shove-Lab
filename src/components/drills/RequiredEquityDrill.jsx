@@ -112,6 +112,12 @@ export default function RequiredEquityDrill({ onAnswer }) {
                 note: `${ratio} odds = ${requiredEquity}% required equity. The two are the same thing in different units.`,
               },
             ]}
+            eli7={[
+              `"Equity" just means: out of 100 tries, how many do I need to win for this call to pay off? We work it out from the money.`,
+              `First, how big is the pot once your call goes in? Add the three pieces: ${spot.pot} (already there) + ${spot.bet} (villain's bet) + ${spot.bet} (your call) = ${totalAfter}bb total.`,
+              `Now, what slice of that pot is your own ${spot.bet}bb? Divide: ${spot.bet} ÷ ${totalAfter} = ${(spot.bet / totalAfter).toFixed(2)}, which is the same as ${requiredEquity} out of 100, or ${requiredEquity}%.`,
+              `So you need to win about ${requiredEquity} times out of 100 to break even. Win more often than that and the call makes money over time.`,
+            ]}
           />
           <NextButton onClick={next}/>
         </>
