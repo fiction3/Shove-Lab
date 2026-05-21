@@ -213,7 +213,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
               {max > 0 && max < 99 && (
                 <div style={{
                   position: "absolute", bottom: 1, right: 2,
-                  fontSize: isMobile ? 7 : 9, opacity: 0.7, fontWeight: 400,
+                  fontSize: isMobile ? 7 : 11, opacity: 0.8, fontWeight: 600,
                   pointerEvents: "none",
                 }}>
                   {max.toFixed(0)}
@@ -235,6 +235,42 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
             <span style={{ opacity: 0.8 }}>{item.l}</span>
           </div>
         ))}
+      </div>
+
+      <div style={{
+        marginTop: 12, padding: "12px 14px",
+        background: "rgba(10,24,22,0.5)",
+        borderLeft: "2px solid rgba(212,161,59,0.35)",
+        borderRadius: 4,
+        fontSize: 12, lineHeight: 1.55, opacity: 0.85,
+      }}>
+        {(mode === "openRaise" || mode === "threeBetDef") ? (
+          <>
+            <strong style={{ color: "#d4a13b" }}>How to read this grid.</strong>{" "}
+            Each square is one starting hand. <strong>Suited</strong> hands sit in the upper-right triangle
+            (marked with an <em>s</em>, e.g. AKs), <strong>offsuit</strong> hands in the lower-left
+            (marked with an <em>o</em>), and <strong>pocket pairs</strong> run down the diagonal.{" "}
+            The <strong>color</strong> shows how often the hand is played rather than folded — greener
+            means played more often, darker means folded more often.{" "}
+            The small <strong>number</strong> in each square is that play frequency as a percentage
+            (e.g. <strong>70</strong> means the hand is raised/4-bet about 70% of the time and folded the rest).
+            Hover or tap a square for the full action breakdown.
+          </>
+        ) : (
+          <>
+            <strong style={{ color: "#d4a13b" }}>How to read this grid.</strong>{" "}
+            Each square is one starting hand. <strong>Suited</strong> hands sit in the upper-right triangle
+            (marked with an <em>s</em>, e.g. AKs), <strong>offsuit</strong> hands in the lower-left
+            (marked with an <em>o</em>), and <strong>pocket pairs</strong> run down the diagonal.{" "}
+            The small <strong>number</strong> in each square is the <strong>biggest stack (in big blinds)</strong>
+            {" "}at which {mode === "call" ? "calling" : mode === "reshove" ? "re-shoving" : "shoving"} this hand
+            is still profitable. So <strong>12</strong> means: {mode === "call" ? "call" : mode === "reshove" ? "re-shove" : "shove"}{" "}
+            this hand whenever the effective stack is <strong>12bb or less</strong>, and fold it when you have more than that.
+            A blank square means the hand is never {mode === "call" ? "called" : mode === "reshove" ? "re-shoved" : "shoved"} at any depth.
+            The <strong>color</strong> is just a visual scale of that number — greener = playable deeper, darker = only when very short.
+            Hover or tap a square for details.
+          </>
+        )}
       </div>
 
       {hovered && <AdviceTooltip hand={hovered.hand} x={hovered.x} y={hovered.y} advice={getAdvice(hovered.hand)} isMobile={isMobile} onClose={() => setHovered(null)}/>}

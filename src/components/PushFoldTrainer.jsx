@@ -865,8 +865,8 @@ export default function PushFoldTrainer() {
               </h3>
               <p style={{ fontSize: 12, opacity: 0.65, margin: "0 0 16px 0" }}>
                 {mode === "openRaise" || mode === "threeBetDef"
-                  ? "Cell color = how often the hand is played (vs folded). Hover/tap a cell for the GTO frequency breakdown."
-                  : "Numbers in each cell = max effective stack (bb) at which the action is +EV. Hover/tap for details."}
+                  ? "Color shows how often each hand is played. Hover or tap a square for the full breakdown."
+                  : "Hover or tap a square for details. A full guide is below the grid."}
               </p>
               <RangeViewer mode={mode} position={lockedPosition || position} stage={stage} customMult={customMults}/>
             </div>
