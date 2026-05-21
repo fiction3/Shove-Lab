@@ -35,6 +35,17 @@ import HandsView from "./HandsView.jsx";
 import RangeGridIcon from "./RangeGridIcon.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
 
+// Short, plain-language description of what each trainer mode practices.
+// Shown under the mode tabs so the labels (especially "Reshove") are never
+// a mystery to a learner.
+const MODE_DESCRIPTIONS = {
+  openRaise: "You're first to enter the pot. Decide whether to fold, make a standard raise, or shove all-in.",
+  push: "It's folded to you and you're short. Decide whether to fold or shove all-in (you're the first one all-in).",
+  call: "Someone has already shoved all-in. Decide whether to fold or call off your stack.",
+  reshove: "Someone raised in front of you. A \"reshove\" means going all-in over their raise — you fold or shove over the top.",
+  threeBetDef: "You raised, and an opponent re-raised (3-bet) you. Decide whether to fold, call, or 4-bet.",
+};
+
 // ---------- Styles (kept inline for now, can extract later) ----------
 
 const subLabel = {
@@ -444,6 +455,14 @@ export default function PushFoldTrainer() {
               borderRadius: 16, padding: 20,
             }}>
               <ModeTabs mode={mode} onChange={changeMode}/>
+
+              <div style={{
+                fontSize: 11.5, opacity: 0.72, marginTop: 10,
+                lineHeight: 1.45, fontStyle: "italic",
+                padding: "0 2px",
+              }}>
+                {MODE_DESCRIPTIONS[mode]}
+              </div>
 
               <div style={subLabel}>Table</div>
               <MiniTable
@@ -866,6 +885,12 @@ export default function PushFoldTrainer() {
                   : "3-Bet defense range"}
                 {" · "}{position}{" · "}{ICM_STAGES[stage].label}
               </h3>
+              <p style={{
+                fontSize: 12.5, opacity: 0.72, margin: "0 0 10px 0",
+                fontStyle: "italic", lineHeight: 1.45,
+              }}>
+                {MODE_DESCRIPTIONS[mode]}
+              </p>
               <p style={{ fontSize: 12, opacity: 0.65, margin: "0 0 16px 0" }}>
                 {mode === "openRaise" || mode === "threeBetDef"
                   ? "Color shows how often each hand is played. Hover or tap a square for the full breakdown."
