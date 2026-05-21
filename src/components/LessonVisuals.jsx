@@ -846,15 +846,125 @@ export function BreakEvenBar({ winPct = 25 }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Showdown example — a worked "who wins" comparison with REAL card images.
+// Reusable via props so any lesson can show a concrete hand resolution.
+//   hero / opp     : ["Ks","Qs"]  two hole cards each
+//   board          : ["Kh","Qd","7c","4s","2h"]  community cards
+//   heroHand/oppHand : made-hand names ("Two pair, Kings & Queens")
+//   winner         : "hero" | "opp" | "split"
+//   note           : one-line explanation
+// ─────────────────────────────────────────────────────────────────────
+export function ShowdownExample({
+  hero = ["Ks", "Qs"],
+  opp = ["Kc", "9d"],
+  board = ["Kh", "Qd", "7c", "4s", "2h"],
+  heroHand = "Two pair — Kings and Queens",
+  oppHand = "One pair — Kings",
+  heroLabel = "You",
+  oppLabel = "Opponent",
+  winner = "hero",
+  note = "Two pair beats one pair, so you win.",
+  caption,
+}) {
+  return (
+    <VisualFrame caption={caption}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Shared board */}
+        <div style={{ textAlign: "center" }}>
+          <SmallLabel>The board (shared by everyone)</SmallLabel>
+          <div style={{ display: "flex", gap: 3, justifyContent: "center" }}>
+            {board.map((c, i) => <TritonCard key={i} card={c} size={42}/>)}
+          </div>
+        </div>
+
+        {/* Two players */}
+        <div style={{
+          display: "flex", gap: 14, justifyContent: "center",
+          flexWrap: "wrap", alignItems: "stretch",
+        }}>
+          <PlayerHand
+            label={heroLabel}
+            cards={hero}
+            made={heroHand}
+            isWinner={winner === "hero" || winner === "split"}
+          />
+          <PlayerHand
+            label={oppLabel}
+            cards={opp}
+            made={oppHand}
+            isWinner={winner === "opp" || winner === "split"}
+          />
+        </div>
+
+        {/* Verdict */}
+        {note && (
+          <div style={{
+            textAlign: "center", fontSize: 13, lineHeight: 1.5,
+            opacity: 0.9, marginTop: 2,
+          }}>
+            {note}
+          </div>
+        )}
+      </div>
+    </VisualFrame>
+  );
+}
+
+function PlayerHand({ label, cards, made, isWinner }) {
+  return (
+    <div style={{
+      flex: "1 1 200px", maxWidth: 260,
+      padding: "12px 14px",
+      borderRadius: 8,
+      background: isWinner ? "rgba(127,198,154,0.1)" : "rgba(232,227,211,0.04)",
+      border: `1px solid ${isWinner ? "rgba(127,198,154,0.45)" : "rgba(232,227,211,0.12)"}`,
+      textAlign: "center",
+    }}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        marginBottom: 8,
+      }}>
+        <span style={{
+          fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase",
+          fontWeight: 700,
+          color: isWinner ? "#7fc69a" : "rgba(232,227,211,0.6)",
+        }}>
+          {label}
+        </span>
+        {isWinner && (
+          <span style={{
+            fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase",
+            fontWeight: 700, color: "#0a1816",
+            background: "#7fc69a", borderRadius: 10, padding: "2px 8px",
+          }}>
+            Wins
+          </span>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: 3, justifyContent: "center", marginBottom: 8 }}>
+        {cards.map((c, i) => <TritonCard key={i} card={c} size={44}/>)}
+      </div>
+      <div style={{
+        fontSize: 12, fontWeight: 600,
+        color: isWinner ? "#7fc69a" : "rgba(232,227,211,0.75)",
+      }}>
+        {made}
+      </div>
+    </div>
+  );
+}
+
 export const LESSON_VISUALS = {
-  "holdem-hero":      HoldemHero,
-  "deal-sequence":    DealSequence,
-  "betting-flow":     BettingFlow,
-  "blinds-button":    BlindsAndButton,
-  "button-rotation":  ButtonRotation,
-  "dangerous-boards": DangerousBoards,
-  "mtt-payouts":      MTTPayoutCurve,
-  "hand-rankings":    HandRankingsQuick,
-  "pot-odds-price":   PotOddsPrice,
-  "break-even-bar":   BreakEvenBar,
+  "holdem-hero":       HoldemHero,
+  "deal-sequence":     DealSequence,
+  "betting-flow":      BettingFlow,
+  "blinds-button":     BlindsAndButton,
+  "button-rotation":   ButtonRotation,
+  "dangerous-boards":  DangerousBoards,
+  "mtt-payouts":       MTTPayoutCurve,
+  "hand-rankings":     HandRankingsQuick,
+  "pot-odds-price":    PotOddsPrice,
+  "break-even-bar":    BreakEvenBar,
+  "showdown-example":  ShowdownExample,
 };
