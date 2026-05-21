@@ -34,6 +34,7 @@ import RangePopover from "./RangePopover.jsx";
 import HandsView from "./HandsView.jsx";
 import RangeGridIcon from "./RangeGridIcon.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
+import DonateModal from "./DonateModal.jsx";
 
 // Short, plain-language description of what each trainer mode practices.
 // Shown under the mode tabs so the labels (especially "Reshove") are never
@@ -151,6 +152,38 @@ function ViewTabs({ view, onChange }) {
   );
 }
 
+// A quiet, friendly "donate if you like" button in the header. Styled
+// understated so it invites rather than demands. Opens the DonateModal,
+// which holds the Buy Me a Coffee link and crypto options.
+function SupportLink({ onClick }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        cursor: "pointer",
+        color: hover ? "#d4a13b" : "rgba(232,227,211,0.55)",
+        border: `1px solid ${hover ? "rgba(212,161,59,0.5)" : "rgba(232,227,211,0.2)"}`,
+        background: hover ? "rgba(212,161,59,0.08)" : "transparent",
+        borderRadius: 20,
+        padding: "7px 14px",
+        fontSize: 12, letterSpacing: "0.02em",
+        fontWeight: 600, fontFamily: "inherit",
+        transition: "all 0.18s",
+        whiteSpace: "nowrap",
+        marginBottom: 6,
+      }}
+      title="If Shove·Lab helps you, you can support its development"
+    >
+      <span style={{ color: hover ? "#e85d75" : "rgba(232,180,180,0.7)", fontSize: 12 }}>♥</span>
+      Donate if you like
+    </button>
+  );
+}
+
 // ---------- Main ----------
 
 export default function PushFoldTrainer() {
@@ -163,6 +196,7 @@ export default function PushFoldTrainer() {
   const [seatCount, setSeatCount] = useLocalStorage("seatCount", 6);
   const [lockedPosition, setLockedPosition] = useState(null);
   const [explanationsOn, setExplanationsOn] = useLocalStorage("coaching", true);
+  const [donateOpen, setDonateOpen] = useState(false);
 
   const [icmState, setICMState] = useLocalStorage("icmState", {
     stacks: [12, 18, 22, 15, 25, 20],
@@ -435,8 +469,11 @@ export default function PushFoldTrainer() {
         maxWidth: 1200, margin: "0 auto",
         borderBottom: "1px solid rgba(232,227,211,0.15)",
         marginBottom: 24,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 16, flexWrap: "wrap",
       }}>
         <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); }}/>
+        <SupportLink onClick={() => setDonateOpen(true)}/>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -963,6 +1000,8 @@ export default function PushFoldTrainer() {
       }}>
         Shove·Lab · Nash data approximated · ICM via Malmuth-Harville (custom) or stage multipliers (presets)
       </footer>
+
+      <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)}/>
     </div>
   );
 }
