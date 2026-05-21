@@ -3,6 +3,7 @@ import { RANKS } from "../lib/handUtils.js";
 import { getMaxPushBB, getMaxCallBB, getMaxReshoveBB } from "../lib/decisionLogic.js";
 import { getRfiFrequency } from "../data/rfiRanges.js";
 import { getDefenseFrequency } from "../data/threeBetDefenseRanges.js";
+import useMediaQuery from "../lib/useMediaQuery.js";
 
 const COLOR_LEGEND = [
   { c: "#2a2a2a", l: "Never" },
@@ -36,6 +37,7 @@ function colorFor(max) {
  */
 export default function RangeViewer({ mode, position, stage, customMult, highlightHand, shoverPos, raiserPos, threeBettorPos }) {
   const [hovered, setHovered] = useState(null); // { hand, x, y }
+  const isMobile = useMediaQuery(768);
 
   function getMaxFor(hand) {
     if (mode === "push") return getMaxPushBB(position, hand, stage, customMult);
@@ -141,20 +143,22 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
     else showTooltip(e, hand);
   }
 
-  // Dismiss tooltip when user taps/clicks anywhere outside the grid
+  // Desktop: dismiss tooltip when clicking anywhere outside the grid.
+  // Mobile: the panel has an explicit × close button, and tapping another
+  // cell switches — so we don't auto-dismiss on every tap (which would fight
+  // the tap-to-open).
   useEffect(() => {
-    if (!hovered) return;
+    if (!hovered || isMobile) return;
     function onDocClick() { setHovered(null); }
-    // Delay attaching so the opening click doesn't immediately close it
     const id = setTimeout(() => document.addEventListener("click", onDocClick), 0);
     return () => { clearTimeout(id); document.removeEventListener("click", onDocClick); };
-  }, [hovered]);
+  }, [hovered, isMobile]);
 
   return (
     <div>
       <div
         style={{ display: "grid", gridTemplateColumns: "repeat(13, 1fr)", gap: 2 }}
-        onMouseMove={e => {
+        onMouseMove={isMobile ? undefined : e => {
           if (touchActive.current) return;
           const cell = e.target.closest?.("[data-hand]");
           if (!cell) return;
@@ -165,7 +169,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
             setHovered({ hand, x: rect.left + rect.width / 2, y: rect.bottom + 8 });
           }
         }}
-        onMouseLeave={() => { if (!touchActive.current) hideTooltip(); }}
+        onMouseLeave={isMobile ? undefined : () => { if (!touchActive.current) hideTooltip(); }}
       >
         {RANKS.map((r1, i) => RANKS.map((r2, j) => {
           let hand;
@@ -225,30 +229,103 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
         ))}
       </div>
 
-      {hovered && <AdviceTooltip hand={hovered.hand} x={hovered.x} y={hovered.y} advice={getAdvice(hovered.hand)}/>}
+      {hovered && <AdviceTooltip hand={hovered.hand} x={hovered.x} y={hovered.y} advice={getAdvice(hovered.hand)} isMobile={isMobile} onClose={() => setHovered(null)}/>}
     </div>
   );
 }
 
 /**
- * Floating tooltip rendered with position: fixed so it can escape the grid.
- * Centers under the hovered cell. If the cell is near the bottom of the
- * screen, the tooltip flips above.
+ * On desktop: a floating tooltip anchored under the hovered cell.
+ * On mobile: a fixed panel pinned to the bottom of the screen (a "static
+ * window") — consistent location, easy to read, with a close button, since
+ * hover doesn't exist on touch.
  */
-function AdviceTooltip({ hand, x, y, advice }) {
-  // Estimated dimensions (we don't measure the DOM here to keep this cheap)
-  const estHeight = advice.kind === "frequency" ? 90 : 60;
-  const estWidth = 170;  // tooltip natural width with padding
-  const margin = 8;       // minimum gap from viewport edge
+function AdviceTooltip({ hand, x, y, advice, isMobile, onClose }) {
+  const content = (
+    <>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        marginBottom: 8,
+      }}>
+        <div style={{
+          fontFamily: "'Inter', sans-serif",
+          fontSize: isMobile ? 20 : 16, fontWeight: 700,
+          letterSpacing: "0.02em",
+          color: "#d4a13b",
+          lineHeight: 1,
+        }}>
+          {hand}
+        </div>
+        {isMobile && (
+          <button onClick={onClose} style={{
+            background: "transparent", border: "none",
+            color: "rgba(232,227,211,0.6)", fontSize: 20,
+            cursor: "pointer", lineHeight: 1, padding: "0 4px",
+          }}>
+            ×
+          </button>
+        )}
+      </div>
 
-  // Vertical: flip above the cell if it would clip off the bottom
+      {advice.kind === "frequency" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 6 : 3 }}>
+          {advice.rows.map(r => (
+            <div key={r.action} style={{
+              display: "flex", justifyContent: "space-between",
+              gap: 16, fontSize: isMobile ? 14 : 12,
+            }}>
+              <span style={{ color: r.color, fontWeight: 600 }}>{r.action}</span>
+              <span style={{ color: "rgba(232,227,211,0.85)", fontWeight: 500 }}>
+                {Math.round(r.pct * 100)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {advice.kind === "threshold" && (
+        <>
+          <div style={{
+            fontSize: isMobile ? 15 : 13, fontWeight: 700,
+            color: advice.color, marginBottom: 2,
+          }}>
+            {advice.summary}
+          </div>
+          <div style={{ fontSize: isMobile ? 12 : 11, opacity: 0.7, lineHeight: 1.4 }}>
+            {advice.detail}
+          </div>
+        </>
+      )}
+    </>
+  );
+
+  // ── Mobile: fixed bottom panel ──
+  if (isMobile) {
+    return (
+      <div style={{
+        position: "fixed",
+        left: 0, right: 0, bottom: 0,
+        background: "rgba(8,22,18,0.99)",
+        borderTop: "1px solid rgba(212,161,59,0.4)",
+        padding: "16px 20px calc(16px + env(safe-area-inset-bottom))",
+        boxShadow: "0 -8px 24px rgba(0,0,0,0.5)",
+        zIndex: 2000,
+        fontFamily: "inherit",
+      }}>
+        {content}
+      </div>
+    );
+  }
+
+  // ── Desktop: floating tooltip anchored under the cell ──
+  const estHeight = advice.kind === "frequency" ? 90 : 60;
+  const estWidth = 170;
+  const margin = 8;
   const flipUp = y + estHeight + 20 > window.innerHeight;
   const topPos = flipUp ? y - estHeight - 24 : y;
-
-  // Horizontal: try to center on x, but clamp so it never overflows either edge
   const half = estWidth / 2;
   const maxLeft = window.innerWidth - estWidth - margin;
-  let leftPos = x - half; // natural centered position
+  let leftPos = x - half;
   if (leftPos < margin) leftPos = margin;
   if (leftPos > maxLeft) leftPos = maxLeft;
 
@@ -268,46 +345,7 @@ function AdviceTooltip({ hand, x, y, advice }) {
       maxWidth: estWidth,
       fontFamily: "inherit",
     }}>
-      <div style={{
-        fontFamily: "'Inter', sans-serif",
-        fontSize: 16, fontWeight: 700,
-        letterSpacing: "0.02em",
-        color: "#d4a13b",
-        marginBottom: 6,
-        lineHeight: 1,
-      }}>
-        {hand}
-      </div>
-
-      {advice.kind === "frequency" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {advice.rows.map(r => (
-            <div key={r.action} style={{
-              display: "flex", justifyContent: "space-between",
-              gap: 16, fontSize: 12,
-            }}>
-              <span style={{ color: r.color, fontWeight: 600 }}>{r.action}</span>
-              <span style={{ color: "rgba(232,227,211,0.85)", fontWeight: 500 }}>
-                {Math.round(r.pct * 100)}%
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {advice.kind === "threshold" && (
-        <>
-          <div style={{
-            fontSize: 13, fontWeight: 700,
-            color: advice.color, marginBottom: 2,
-          }}>
-            {advice.summary}
-          </div>
-          <div style={{ fontSize: 11, opacity: 0.7, lineHeight: 1.4 }}>
-            {advice.detail}
-          </div>
-        </>
-      )}
+      {content}
     </div>
   );
 }
