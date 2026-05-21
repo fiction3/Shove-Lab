@@ -36,11 +36,20 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
   // layout) we scroll to page top as before.
   useEffect(() => {
     if (!mountedRef.current) { mountedRef.current = true; return; }
-    if (isMobile && contentRef.current) {
-      contentRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    // Wait for the new lesson content to paint before measuring/scrolling.
+    const id = requestAnimationFrame(() => {
+      if (isMobile && contentRef.current) {
+        // Scroll the window so the content top sits near the top of the
+        // viewport (with a small margin). Using window scroll with a measured
+        // offset is more reliable on mobile than scrollIntoView alone.
+        const rect = contentRef.current.getBoundingClientRect();
+        const top = window.scrollY + rect.top - 12;
+        window.scrollTo({ top, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    });
+    return () => cancelAnimationFrame(id);
   }, [activeId, isMobile]);
 
   return (

@@ -155,9 +155,14 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
   }, [hovered, isMobile]);
 
   return (
-    <div>
+    <div style={{ maxWidth: isMobile ? "100%" : 690, margin: "0 auto" }}>
       <div
-        style={{ display: "grid", gridTemplateColumns: "repeat(13, 1fr)", gap: 2 }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(13, 1fr)",
+          gap: 2,
+          width: "100%",
+        }}
         onMouseMove={isMobile ? undefined : e => {
           if (touchActive.current) return;
           const cell = e.target.closest?.("[data-hand]");

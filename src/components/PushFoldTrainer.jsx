@@ -868,6 +868,8 @@ export default function PushFoldTrainer() {
               border: "1px solid rgba(232,227,211,0.1)",
               borderRadius: 12, padding: 20, marginBottom: 20,
               display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap",
+              maxWidth: isMobile ? "100%" : 800,
+              margin: isMobile ? "0 0 20px 0" : "0 auto 20px auto",
             }}>
               <div>
                 <div style={subLabel}>Mode</div>
@@ -914,6 +916,8 @@ export default function PushFoldTrainer() {
               background: "rgba(10,24,22,0.6)",
               border: "1px solid rgba(232,227,211,0.1)",
               borderRadius: 12, padding: 20,
+              maxWidth: isMobile ? "100%" : 800,
+              margin: isMobile ? undefined : "0 auto",
             }}>
               <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, margin: "0 0 6px 0" }}>
                 {mode === "openRaise" ? "Open raise range"
