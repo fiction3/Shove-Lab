@@ -249,7 +249,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
         <div style={{ flexShrink: 0 }}>
           <GridSchematic/>
         </div>
-        <div style={{ fontSize: 12, lineHeight: 1.55, opacity: 0.85 }}>
+        <div style={{ fontSize: 14, lineHeight: 1.65, opacity: 0.9 }}>
         {(mode === "openRaise" || mode === "threeBetDef") ? (
           <>
             <strong style={{ color: "#d4a13b" }}>How to read this grid.</strong>{" "}

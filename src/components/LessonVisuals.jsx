@@ -752,6 +752,100 @@ function ShowdownThumb() {
 // ─────────────────────────────────────────────────────────────────────
 // Registry — section.visual matches one of these keys
 // ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
+// Pot odds — "the price" picture: you risk a small call to win a big pot
+// ─────────────────────────────────────────────────────────────────────
+export function PotOddsPrice() {
+  // Visual: a stack representing what you'd win (the pot) vs what you risk
+  // (your call). Big green pile = reward, small red pile = what you pay.
+  return (
+    <VisualFrame caption="You're paying 4 to try to win 12. That's the 'price' the pot is offering. The question is just: do you win often enough to make that price worth it?">
+      <div style={{
+        display: "flex", justifyContent: "center", alignItems: "flex-end",
+        gap: 40, padding: "10px 0",
+      }}>
+        <ChipStack count={4} color="#e07a5f" label="You risk" sublabel="4bb to call"/>
+        <div style={{
+          fontSize: 26, opacity: 0.4, alignSelf: "center",
+          fontFamily: "'Inter', sans-serif", fontWeight: 300,
+        }}>vs</div>
+        <ChipStack count={12} color="#7fc69a" label="You can win" sublabel="12bb pot"/>
+      </div>
+    </VisualFrame>
+  );
+}
+
+// A simple vertical stack of chips, scaled by count.
+function ChipStack({ count, color, label, sublabel }) {
+  // Cap visual chips at 12 so the stack doesn't get absurdly tall;
+  // the number label still shows the true amount.
+  const chips = Math.min(count, 12);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column-reverse", gap: 1 }}>
+        {Array.from({ length: chips }).map((_, i) => (
+          <div key={i} style={{
+            width: 44, height: 8, borderRadius: 3,
+            background: color, opacity: 0.55 + (i / chips) * 0.45,
+            border: "1px solid rgba(0,0,0,0.2)",
+          }}/>
+        ))}
+      </div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{
+          fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase",
+          opacity: 0.6, fontWeight: 600,
+        }}>
+          {label}
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, color, fontFamily: "'Inter', sans-serif" }}>
+          {sublabel}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Break-even bar — how often you need to win, shown as a split bar
+// ─────────────────────────────────────────────────────────────────────
+export function BreakEvenBar({ winPct = 25 }) {
+  return (
+    <VisualFrame caption={`At this price you only need to win about ${winPct} times out of 100. Win more often than that and calling makes money over time.`}>
+      <div style={{ maxWidth: 360, margin: "0 auto" }}>
+        <div style={{
+          display: "flex", height: 40, borderRadius: 6, overflow: "hidden",
+          border: "1px solid rgba(232,227,211,0.15)",
+        }}>
+          <div style={{
+            width: `${winPct}%`,
+            background: "linear-gradient(90deg, #7fc69a, #5a8a40)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 12, fontWeight: 700, color: "#0a1816",
+          }}>
+            {winPct}%
+          </div>
+          <div style={{
+            width: `${100 - winPct}%`,
+            background: "rgba(232,227,211,0.1)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 12, fontWeight: 600, opacity: 0.6,
+          }}>
+            {100 - winPct}%
+          </div>
+        </div>
+        <div style={{
+          display: "flex", justifyContent: "space-between",
+          marginTop: 8, fontSize: 11,
+        }}>
+          <span style={{ color: "#7fc69a", fontWeight: 600 }}>← Win this often = call is worth it</span>
+          <span style={{ opacity: 0.55 }}>lose</span>
+        </div>
+      </div>
+    </VisualFrame>
+  );
+}
+
 export const LESSON_VISUALS = {
   "holdem-hero":      HoldemHero,
   "deal-sequence":    DealSequence,
@@ -761,4 +855,6 @@ export const LESSON_VISUALS = {
   "dangerous-boards": DangerousBoards,
   "mtt-payouts":      MTTPayoutCurve,
   "hand-rankings":    HandRankingsQuick,
+  "pot-odds-price":   PotOddsPrice,
+  "break-even-bar":   BreakEvenBar,
 };
