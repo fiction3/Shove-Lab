@@ -242,8 +242,14 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
         background: "rgba(10,24,22,0.5)",
         borderLeft: "2px solid rgba(212,161,59,0.35)",
         borderRadius: 4,
-        fontSize: 12, lineHeight: 1.55, opacity: 0.85,
+        display: "flex", gap: 16,
+        flexDirection: isMobile ? "column" : "row",
+        alignItems: isMobile ? "center" : "flex-start",
       }}>
+        <div style={{ flexShrink: 0 }}>
+          <GridSchematic/>
+        </div>
+        <div style={{ fontSize: 12, lineHeight: 1.55, opacity: 0.85 }}>
         {(mode === "openRaise" || mode === "threeBetDef") ? (
           <>
             <strong style={{ color: "#d4a13b" }}>How to read this grid.</strong>{" "}
@@ -271,9 +277,58 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
             Hover or tap a square for details.
           </>
         )}
+        </div>
       </div>
 
       {hovered && <AdviceTooltip hand={hovered.hand} x={hovered.x} y={hovered.y} advice={getAdvice(hovered.hand)} isMobile={isMobile} onClose={() => setHovered(null)}/>}
+    </div>
+  );
+}
+
+/**
+ * A small schematic of the 13×13 hand grid, color-coding the three regions:
+ * suited (upper-right triangle), offsuit (lower-left), pocket pairs (diagonal).
+ * Used in the "how to read this grid" explanation.
+ */
+function GridSchematic() {
+  const N = 13;
+  const cell = 9;     // px per cell
+  const gap = 1;
+  const size = N * (cell + gap);
+  const squares = [];
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      let fill;
+      if (i === j) fill = "#d4a13b";              // pairs (diagonal) — gold
+      else if (i < j) fill = "#3a7d4c";           // suited (upper-right) — green
+      else fill = "#6b5a8a";                       // offsuit (lower-left) — purple-grey
+      squares.push(
+        <rect key={`${i}-${j}`}
+          x={j * (cell + gap)} y={i * (cell + gap)}
+          width={cell} height={cell} rx={1}
+          fill={fill} opacity={0.85}/>
+      );
+    }
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
+      <svg width={size} height={size} style={{ display: "block" }}>
+        {squares}
+      </svg>
+      <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 10 }}>
+        <LegendDot color="#3a7d4c" label="Suited (s)"/>
+        <LegendDot color="#6b5a8a" label="Offsuit (o)"/>
+        <LegendDot color="#d4a13b" label="Pairs"/>
+      </div>
+    </div>
+  );
+}
+
+function LegendDot({ color, label }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+      <div style={{ width: 9, height: 9, background: color, borderRadius: 2, opacity: 0.85 }}/>
+      <span style={{ opacity: 0.8 }}>{label}</span>
     </div>
   );
 }
