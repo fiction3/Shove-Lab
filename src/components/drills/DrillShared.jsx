@@ -27,9 +27,10 @@ export function DrillFrame({ children, title, subtitle }) {
           </div>
         )}
         <h3 style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 28, fontWeight: 500, margin: "0 0 24px 0",
-          lineHeight: 1.2,
+          fontFamily: "'Inter', sans-serif",
+          fontSize: 22, fontWeight: 600, margin: "0 0 24px 0",
+          lineHeight: 1.35,
+          letterSpacing: "-0.005em",
         }}>
           {title}
         </h3>

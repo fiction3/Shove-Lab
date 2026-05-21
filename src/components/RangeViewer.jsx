@@ -110,7 +110,9 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
   }
 
   function showTooltip(e, hand) {
-    const rect = e.currentTarget.getBoundingClientRect();
+    const target = e.currentTarget;
+    if (!target || !target.getBoundingClientRect) return;
+    const rect = target.getBoundingClientRect();
     setHovered({
       hand,
       x: rect.left + rect.width / 2,
@@ -121,37 +123,50 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
     setHovered(null);
   }
 
-  // Mouse hover (desktop only). On touch devices, browsers simulate a brief
-  // mouseenter on tap which we don't want — so we ignore the simulated event
-  // by checking the pointerType in the preceding onPointerEnter.
-  const lastPointerWasTouch = useRef(false);
-  function handlePointerEnter(e, hand) {
-    lastPointerWasTouch.current = e.pointerType === "touch" || e.pointerType === "pen";
-    if (lastPointerWasTouch.current) return; // touch is handled by onClick
-    showTooltip(e, hand);
+  // Desktop hover is handled at the grid level (see onMouseMove on the grid
+  // container below) for reliability across a dense 13×13 grid. Touch is
+  // handled per-cell via onTouchStart. We guard with a touch flag so a tap
+  // doesn't also trigger synthetic mouse events on mobile browsers.
+  const touchActive = useRef(false);
+
+  function handleTouchStart(e, hand) {
+    touchActive.current = true;
+    if (hovered?.hand === hand) hideTooltip();
+    else showTooltip({ currentTarget: e.currentTarget }, hand);
   }
-  function handleMouseLeave() {
-    if (lastPointerWasTouch.current) return; // touch shouldn't dismiss on "leave"
-    hideTooltip();
-  }
-  function handleCellClick(e, hand) {
-    // Tap / click: toggle the tooltip for this cell.
+  function handleClick(e, hand) {
+    if (touchActive.current) { touchActive.current = false; return; }
     e.stopPropagation();
     if (hovered?.hand === hand) hideTooltip();
     else showTooltip(e, hand);
   }
 
-  // Dismiss tooltip when user taps anywhere outside the grid (touch flow)
+  // Dismiss tooltip when user taps/clicks anywhere outside the grid
   useEffect(() => {
     if (!hovered) return;
     function onDocClick() { setHovered(null); }
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
+    // Delay attaching so the opening click doesn't immediately close it
+    const id = setTimeout(() => document.addEventListener("click", onDocClick), 0);
+    return () => { clearTimeout(id); document.removeEventListener("click", onDocClick); };
   }, [hovered]);
 
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(13, 1fr)", gap: 2 }}>
+      <div
+        style={{ display: "grid", gridTemplateColumns: "repeat(13, 1fr)", gap: 2 }}
+        onMouseMove={e => {
+          if (touchActive.current) return;
+          const cell = e.target.closest?.("[data-hand]");
+          if (!cell) return;
+          const hand = cell.getAttribute("data-hand");
+          // Only update if we moved to a different cell (avoids needless re-renders)
+          if (hovered?.hand !== hand) {
+            const rect = cell.getBoundingClientRect();
+            setHovered({ hand, x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+          }
+        }}
+        onMouseLeave={() => { if (!touchActive.current) hideTooltip(); }}
+      >
         {RANKS.map((r1, i) => RANKS.map((r2, j) => {
           let hand;
           if (i === j) hand = r1 + r2;
@@ -162,9 +177,9 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
           const isHighlighted = hand === highlightHand;
           return (
             <div key={`${i}-${j}`}
-              onPointerEnter={e => handlePointerEnter(e, hand)}
-              onMouseLeave={handleMouseLeave}
-              onClick={e => handleCellClick(e, hand)}
+              data-hand={hand}
+              onTouchStart={e => handleTouchStart(e, hand)}
+              onClick={e => handleClick(e, hand)}
               style={{
                 background: colorFor(max),
                 aspectRatio: "1",
@@ -187,6 +202,7 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
                 <div style={{
                   position: "absolute", bottom: 1, right: 2,
                   fontSize: 7, opacity: 0.7, fontWeight: 400,
+                  pointerEvents: "none",
                 }}>
                   {max.toFixed(0)}
                 </div>
