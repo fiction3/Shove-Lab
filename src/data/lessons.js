@@ -34,6 +34,14 @@ export const LESSONS = [
     title: "Pot Odds",
     subtitle: "Is the price worth it?",
     estimatedMinutes: 6,
+    eli7: [
+      "Strip away the poker words and pot odds is just a price check, the same one you'd do at a betting window. Someone is offering you a deal: put in a small amount now, and if you win you collect a much bigger pile. The only question is whether the prize is big enough to justify the price.",
+      "Say there's $30 on the table and it costs you $10 to stay in the hand. You're risking $10 to win $30 — three dollars back for every one you put in. You don't need to win every time for that to be a good bet. You just need to win often enough that the wins cover the losses.",
+      "Good deal: you risk a little to win a lot (like $1 to win $9). Even if you only win now and then, you come out ahead, because each win is large and each loss is small. You can take this deal with a weak hand.",
+      "Fair deal: you risk $1 to win $3. Worth it if you have a reasonable chance — better than one in four. You'd want a hand with some real potential.",
+      "Bad deal: you risk $1 to win $1. Only worth it if you're confident you'll win more than half the time. Otherwise, keep your money and wait for a better spot.",
+      "That's the whole idea: the more you can win compared to what you put in, the weaker a hand you can profitably play. A big prize for a small price means you can call wide; a small prize for a big price means you need a strong hand.",
+    ],
     sections: [
       { type: "prose", text: "Imagine a friend offers you a bet. You put in $4. If you win, you get $12. You don't win every time — but is this a good deal? Pot odds is just the poker way of answering that exact question. It's not scary math, it's a fairness check." },
       { type: "heading", text: "What's actually happening" },

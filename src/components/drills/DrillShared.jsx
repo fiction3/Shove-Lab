@@ -95,8 +95,9 @@ export function NumberInput({ value, onChange, onSubmit, placeholder, suffix, di
   );
 }
 
-export function FeedbackBox({ grade, trueValue, explanation, suffix, mathWalkthrough }) {
+export function FeedbackBox({ grade, trueValue, explanation, suffix, mathWalkthrough, eli7 }) {
   const [showMath, setShowMath] = useState(false);
+  const [showEli7, setShowEli7] = useState(false);
   const color = grade === "exact" ? "#7fc69a"
               : grade === "close" ? "#d4a13b"
               : "#e07a5f";
@@ -129,20 +130,58 @@ export function FeedbackBox({ grade, trueValue, explanation, suffix, mathWalkthr
           {explanation}
         </div>
       )}
-      {mathWalkthrough && (
+      {(mathWalkthrough || eli7) && (
         <>
-          <button onClick={() => setShowMath(s => !s)} style={{
-            marginTop: 14, background: "transparent",
-            color: "#d4a13b", border: "1px solid rgba(212,161,59,0.4)",
-            borderRadius: 4, padding: "6px 12px", cursor: "pointer",
-            fontSize: 11, letterSpacing: "0.15em",
-            textTransform: "uppercase", fontWeight: 600,
-            fontFamily: "inherit",
-          }}>
-            {showMath ? "Hide math ↑" : "Show full math ↓"}
-          </button>
-          {showMath && (
+          <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+            {mathWalkthrough && (
+              <button onClick={() => { setShowMath(s => !s); setShowEli7(false); }} style={{
+                background: "transparent",
+                color: "#d4a13b", border: "1px solid rgba(212,161,59,0.4)",
+                borderRadius: 4, padding: "6px 12px", cursor: "pointer",
+                fontSize: 11, letterSpacing: "0.15em",
+                textTransform: "uppercase", fontWeight: 600,
+                fontFamily: "inherit",
+              }}>
+                {showMath ? "Hide math ↑" : "Show full math ↓"}
+              </button>
+            )}
+            {eli7 && (
+              <button onClick={() => { setShowEli7(s => !s); setShowMath(false); }} style={{
+                background: showEli7 ? "rgba(127,198,154,0.15)" : "transparent",
+                color: "#7fc69a", border: "1px solid rgba(127,198,154,0.4)",
+                borderRadius: 4, padding: "6px 12px", cursor: "pointer",
+                fontSize: 11, letterSpacing: "0.05em",
+                fontWeight: 600, fontFamily: "inherit",
+              }}>
+                {showEli7 ? "Hide simple version ↑" : "Explain simply"}
+              </button>
+            )}
+          </div>
+          {showMath && mathWalkthrough && (
             <MathPanel walkthrough={mathWalkthrough}/>
+          )}
+          {showEli7 && eli7 && (
+            <div style={{
+              marginTop: 14, padding: "14px 16px",
+              background: "rgba(127,198,154,0.07)",
+              border: "1px solid rgba(127,198,154,0.25)",
+              borderRadius: 4,
+            }}>
+              <div style={{
+                fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
+                color: "#7fc69a", marginBottom: 10, fontWeight: 700,
+              }}>
+                In plain English
+              </div>
+              {(Array.isArray(eli7) ? eli7 : [eli7]).map((para, i) => (
+                <p key={i} style={{
+                  fontSize: 13, lineHeight: 1.6,
+                  margin: "0 0 10px 0", opacity: 0.9,
+                }}>
+                  {para}
+                </p>
+              ))}
+            </div>
           )}
         </>
       )}

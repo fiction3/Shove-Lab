@@ -127,6 +127,11 @@ export default function PotOddsDrill({ onAnswer }) {
               </>
             }
             mathWalkthrough={walkthrough}
+            eli7={[
+              `Forget the poker words for a second. There's ${spot.pot + spot.bet}bb sitting on the table, and it costs you ${spot.bet}bb to stay in.`,
+              `So you're risking ${spot.bet} to win ${spot.pot + spot.bet} — that's ${(spot.pot + spot.bet) / spot.bet} back for every 1 you put in, written as ${correctLabel}. You don't need to win every time; you just need to win often enough that the wins cover the losses.`,
+              `The bigger that first number, the better the deal — more to win for the same price means you can take the deal with a weaker hand.`,
+            ]}
           />
           <NextButton onClick={next}/>
         </>

@@ -14,6 +14,10 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
   const [activeId, setActiveId] = useState(lessons[0].id);
   const active = lessons.find(l => l.id === activeId) || lessons[0];
   const isMobile = useMediaQuery(768);
+  const [showEli7, setShowEli7] = useState(false);
+
+  // Collapse the "explain simply" panel whenever the lesson changes.
+  useEffect(() => { setShowEli7(false); }, [activeId]);
 
   // When the user navigates to a different lesson (via sidebar, next/prev,
   // or anywhere else), scroll back to the top so they see the lesson title
@@ -107,6 +111,54 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
           }}>
             {active.subtitle}
           </p>
+
+          {active.eli7 && (
+            <div style={{ marginTop: 16 }}>
+              <button
+                onClick={() => setShowEli7(s => !s)}
+                style={{
+                  background: showEli7 ? "rgba(127,198,154,0.15)" : "transparent",
+                  color: "#7fc69a",
+                  border: "1px solid rgba(127,198,154,0.4)",
+                  borderRadius: 20,
+                  padding: "7px 16px",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {showEli7 ? "Hide simple version ↑" : "Explain simply"}
+              </button>
+
+              {showEli7 && (
+                <div style={{
+                  marginTop: 14,
+                  padding: "18px 20px",
+                  background: "rgba(127,198,154,0.07)",
+                  border: "1px solid rgba(127,198,154,0.25)",
+                  borderRadius: 10,
+                }}>
+                  <div style={{
+                    fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
+                    color: "#7fc69a", marginBottom: 12, fontWeight: 700,
+                  }}>
+                    In plain English
+                  </div>
+                  {active.eli7.map((para, i) => (
+                    <p key={i} style={{
+                      fontSize: 15, lineHeight: 1.65,
+                      margin: i === 0 ? "0 0 12px 0" : "0 0 12px 0",
+                      opacity: 0.92,
+                    }}>
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </header>
 
         {active.sections.map((section, i) => (
