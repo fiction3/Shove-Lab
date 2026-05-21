@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LESSONS } from "../data/lessons.js";
 import { LESSON_VISUALS } from "./LessonVisuals.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
+import { track } from "../lib/analytics.js";
 
 /**
  * Two-pane lesson reader. Used by both the Learn tab (strategy lessons) and
@@ -15,16 +16,32 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
   const active = lessons.find(l => l.id === activeId) || lessons[0];
   const isMobile = useMediaQuery(768);
   const [showEli7, setShowEli7] = useState(false);
+  const contentRef = useRef(null);
+  // Track whether the active lesson changed due to a user action (so we don't
+  // scroll on the very first render / initial mount).
+  const mountedRef = useRef(false);
 
   // Collapse the "explain simply" panel whenever the lesson changes.
   useEffect(() => { setShowEli7(false); }, [activeId]);
 
-  // When the user navigates to a different lesson (via sidebar, next/prev,
-  // or anywhere else), scroll back to the top so they see the lesson title
-  // instead of starting mid-page.
+  // Track which lessons get opened (distinguishing Basics vs Learn via listLabel).
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [activeId]);
+    track("lesson-open", { lesson: activeId, section: listLabel });
+  }, [activeId, listLabel]);
+
+  // When the user picks a different lesson, bring its title into view.
+  // On mobile the lesson list stacks ABOVE the content, so scrolling to
+  // page-top would just show the list again with the lesson offscreen below.
+  // Instead we scroll the content heading into view. On desktop (sidebar
+  // layout) we scroll to page top as before.
+  useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
+    if (isMobile && contentRef.current) {
+      contentRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [activeId, isMobile]);
 
   return (
     <div style={{
@@ -80,12 +97,13 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
       </aside>
 
       {/* Lesson content */}
-      <article style={{
+      <article ref={contentRef} style={{
         background: "rgba(10,24,22,0.6)",
         border: "1px solid rgba(232,227,211,0.1)",
         borderRadius: 12,
         padding: isMobile ? 18 : 36,
         maxWidth: 760,
+        scrollMarginTop: 16,
       }}>
         <header style={{
           marginBottom: 28,
@@ -115,7 +133,7 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
           {active.eli7 && (
             <div style={{ marginTop: 16 }}>
               <button
-                onClick={() => setShowEli7(s => !s)}
+                onClick={() => { setShowEli7(s => { if (!s) track("plain-english", { lesson: activeId }); return !s; }); }}
                 style={{
                   background: showEli7 ? "rgba(127,198,154,0.15)" : "transparent",
                   color: "#7fc69a",

@@ -6,6 +6,7 @@ import OutsDrill from "./drills/OutsDrill.jsx";
 import FoldEquityDrill from "./drills/FoldEquityDrill.jsx";
 import HandRankingDrill from "./drills/HandRankingDrill.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
+import { track } from "../lib/analytics.js";
 
 const DRILL_DEFS = [
   { id: "pot-odds",        label: "Pot Odds",          description: "Given pot + bet, find required equity %", component: PotOddsDrill },
@@ -31,6 +32,11 @@ export default function DrillsView({ initialDrill, history, addHistory }) {
   useEffect(() => {
     if (initialDrill) setActiveId(initialDrill);
   }, [initialDrill]);
+
+  // Track which drill the user is engaging with.
+  useEffect(() => {
+    track("drill-start", { drill: activeId });
+  }, [activeId]);
 
   const active = DRILL_DEFS.find(d => d.id === activeId);
   const ActiveDrill = active.component;

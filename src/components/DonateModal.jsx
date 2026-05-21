@@ -19,7 +19,7 @@ const CRYPTO_OPTIONS = [
     key: "btc",
     label: "Bitcoin",
     ticker: "BTC",
-    address: "bc1q6d2hwl5dj7welgg4ug9pdwczs34yleaplxtlj4",       // ← REPLACE
+    address: "YOUR_BTC_ADDRESS_HERE",       // ← REPLACE
     memo: "",
     color: "#f7931a",
   },
@@ -27,7 +27,7 @@ const CRYPTO_OPTIONS = [
     key: "eth",
     label: "Ethereum",
     ticker: "ETH",
-    address: "0x2eBE9B77726939d7e1B023d8796Eba533Cdf33D6",       // ← REPLACE
+    address: "YOUR_ETH_ADDRESS_HERE",       // ← REPLACE
     memo: "",
     color: "#627eea",
   },
@@ -35,7 +35,7 @@ const CRYPTO_OPTIONS = [
     key: "xrp",
     label: "XRP",
     ticker: "XRP",
-    address: "rHc36zpbXe1VHShpQmeH7XPDmvheFP3L5M",       // ← REPLACE
+    address: "YOUR_XRP_ADDRESS_HERE",       // ← REPLACE
     memo: "",                                 // ← set a destination tag here if your XRP destination needs one
     color: "#23292f",
   },
@@ -43,7 +43,7 @@ const CRYPTO_OPTIONS = [
     key: "trx",
     label: "TRON",
     ticker: "TRX",
-    address: "TZE817AiL4ezgypvReh9Q6KE5HxgB5rN47",      // ← REPLACE
+    address: "YOUR_TRON_ADDRESS_HERE",      // ← REPLACE
     memo: "",
     color: "#ef0027",
   },

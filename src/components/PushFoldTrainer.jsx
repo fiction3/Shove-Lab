@@ -35,6 +35,7 @@ import HandsView from "./HandsView.jsx";
 import RangeGridIcon from "./RangeGridIcon.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
 import DonateModal from "./DonateModal.jsx";
+import { track } from "../lib/analytics.js";
 
 // Short, plain-language description of what each trainer mode practices.
 // Shown under the mode tabs so the labels (especially "Reshove") are never
@@ -472,8 +473,8 @@ export default function PushFoldTrainer() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         gap: 16, flexWrap: "wrap",
       }}>
-        <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); }}/>
-        <SupportLink onClick={() => setDonateOpen(true)}/>
+        <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); track("tab-view", { tab: v }); }}/>
+        <SupportLink onClick={() => { setDonateOpen(true); track("donate-opened"); }}/>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -996,9 +997,11 @@ export default function PushFoldTrainer() {
       <footer style={{
         maxWidth: 1200, margin: "32px auto 0 auto",
         fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase",
-        opacity: 0.4, textAlign: "center",
+        opacity: 0.4, textAlign: "center", lineHeight: 1.8,
       }}>
         Shove·Lab · Nash data approximated · ICM via Malmuth-Harville (custom) or stage multipliers (presets)
+        <br/>
+        Privacy-friendly analytics · no cookies · no personal data
       </footer>
 
       <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)}/>
