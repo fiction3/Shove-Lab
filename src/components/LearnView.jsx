@@ -12,9 +12,11 @@ import { useT } from "../lib/i18n.jsx";
  *
  * Section types supported: prose | heading | example | calc | list
  */
-export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel = "Lessons" }) {
+export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel = "Lessons", initialLessonId = null }) {
   const { t } = useT();
-  const [activeId, setActiveId] = useState(lessons[0].id);
+  const [activeId, setActiveId] = useState(
+    initialLessonId && lessons.some(l => l.id === initialLessonId) ? initialLessonId : lessons[0].id
+  );
   const active = lessons.find(l => l.id === activeId) || lessons[0];
   const isMobile = useMediaQuery(768);
   const [showEli7, setShowEli7] = useState(false);
@@ -22,6 +24,14 @@ export default function LearnView({ onJumpToDrill, lessons = LESSONS, listLabel 
   // Track whether the active lesson changed due to a user action (so we don't
   // scroll on the very first render / initial mount).
   const mountedRef = useRef(false);
+
+  // If a deep-link target arrives (e.g. from the Home Game tab) while this view
+  // is already mounted, open that lesson.
+  useEffect(() => {
+    if (initialLessonId && lessons.some(l => l.id === initialLessonId)) {
+      setActiveId(initialLessonId);
+    }
+  }, [initialLessonId, lessons]);
 
   // Collapse the "explain simply" panel whenever the lesson changes.
   useEffect(() => { setShowEli7(false); }, [activeId]);

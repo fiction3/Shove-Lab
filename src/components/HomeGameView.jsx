@@ -5,36 +5,129 @@ import { track } from "../lib/analytics.js";
 
 /**
  * Home Game tab — an interactive, click-through walkthrough that takes a
- * complete beginner through setting up a single-table home tournament for
- * 4–6 friends. Six steps, advanced via Next/Back or the progress bars.
+ * complete beginner through setting up a single-table home tournament.
  *
- * This is intentionally NOT a LearnView lesson: it's a guided stepper rather
- * than a scrolling article, so it lives as its own small component. It reuses
- * the real TritonCard (4-color GG deck) for any dealt-card visuals and the
- * shared brand palette so it feels native to the rest of the app.
+ * Six steps, in the order you'd actually make the decisions:
+ *   1. Buy-in & prize pool        (the money)
+ *   2. Which chip set do you have? (your equipment — gates table size)
+ *   3. Chips & how long a night    (denomination set + depth -> stack)
+ *   4. Blinds & the timer          (the schedule)
+ *   5. Rebuys & payout             (rules to agree first)
+ *   6. Deal & play                 (bridge to the Trainer)
  *
- * The final step bridges to the Trainer via the onGoToTrainer callback.
+ * Advanced via Next/Back or the progress bars. Reuses the real TritonCard and
+ * the shared brand palette so it feels native to the rest of the app.
  */
 
 const GOLD = "#d4a13b";
 const CREAM = "#e8e3d3";
 
-// Chip colors tuned to read on the dark felt (slightly brighter than a real
-// chip so the white chip doesn't vanish against the background).
-function Chip({ fill, ring, label, value }) {
+// ── Reusable chip-value colors. Each denomination has a fixed swatch so the
+// same value always looks the same wherever it appears. These are tuned to
+// read on the dark felt; real chips vary by manufacturer, which is why the
+// walkthrough tells players to go by the printed NUMBER, not the color.
+const CHIP_COLOR = {
+  25:   { fill: "#2f8a4a", ring: "#fff" },   // green
+  50:   { fill: "#7fd4d0", ring: "#0a3a38" }, // teal
+  100:  { fill: "#3a3f45", ring: "#fff" },   // dark
+  500:  { fill: "#d35aa6", ring: "#fff" },   // pink
+  1000: { fill: "#e6c84a", ring: "#5a4a00" }, // yellow
+};
+
+// ── Denomination presets. The player picks the set of four values that match
+// the chips they own. Each entry lists which depths it can cleanly support
+// (smallest chip = small blind; deep stacks need a high top chip). Every
+// distribution below totals EXACTLY its stack, equals its stated big-blind
+// depth, and fits a standard 300-chip set at 6 players (and 500 at 10).
+const DENOM_PRESETS = {
+  standard: {
+    label: "25 · 100 · 500 · 1000",
+    denoms: [25, 100, 500, 1000],
+    blinds: "25 / 50",
+    bb: 50,
+    blurb: "The most common box. Works for any length of game.",
+    stacks: {
+      50:  { counts: [8, 8, 1, 1], total: 2500 },
+      100: { counts: [8, 3, 5, 2], total: 5000 },
+      150: { counts: [4, 4, 6, 4], total: 7500 },
+    },
+  },
+  low: {
+    label: "25 · 50 · 100 · 500",
+    denoms: [25, 50, 100, 500],
+    blinds: "25 / 50",
+    bb: 50,
+    blurb: "A lower-value set (has a 50 chip). Best for shorter games — its top chip is only 500.",
+    stacks: {
+      50:  { counts: [4, 4, 7, 3], total: 2500 },
+      100: { counts: [4, 2, 8, 8], total: 5000 },
+    },
+  },
+  high: {
+    label: "50 · 100 · 500 · 1000",
+    denoms: [50, 100, 500, 1000],
+    blinds: "50 / 100",
+    bb: 100,
+    blurb: "A higher-value set with no small chips, so blinds start at 50 / 100.",
+    stacks: {
+      50:  { counts: [8, 6, 0, 4], total: 5000 },
+      100: { counts: [4, 3, 3, 8], total: 10000 },
+    },
+  },
+};
+const DENOM_OPTIONS = ["standard", "low", "high"];
+
+// ── Depth options (in big blinds). Descriptor + rough duration for a 5–6
+// player game on 20-minute levels. Durations are estimates, stated as such.
+const DEPTHS = {
+  50:  { label: "50 BB", descriptor: "Short & fast", duration: "1½–2½ hours" },
+  100: { label: "100 BB", descriptor: "Standard", duration: "2½–3½ hours" },
+  150: { label: "150 BB", descriptor: "Deep & long", duration: "3½–5 hours" },
+};
+const DEPTH_OPTIONS = [50, 100, 150];
+
+// Standard retail chip sets and what they realistically hold.
+const SET_PRESETS = {
+  300: {
+    label: "300-chip set",
+    players: "4–6 players",
+    diff: "The everyday starter box — about 100 of the smallest chip and ~50 of each other colour. Perfect for a small group.",
+  },
+  500: {
+    label: "500-chip set",
+    players: "6–10 players",
+    diff: "Roughly half-again as many chips of every colour. Seats a bigger table and leaves spares for rebuys.",
+  },
+};
+const SET_OPTIONS = [300, 500];
+
+// Build the blind schedule for a preset, scaled from its starting blind.
+// Base schedule (×1 = starts 25/50); doubles for the "high" preset (50/100).
+const BASE_LEVELS = [
+  ["1", [25, 50], "start"],
+  ["2", [50, 100], "20 min"],
+  ["3", [75, 150], "40 min"],
+  ["4", [100, 200], "1 hr"],
+  ["5", [150, 300], "1 hr 20"],
+  ["6", [200, 400], "1 hr 40"],
+];
+
+function Chip({ value, count }) {
+  const c = CHIP_COLOR[value] || { fill: "#888", ring: "#fff" };
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
       <div style={{
-        width: 54, height: 54, borderRadius: "50%", background: fill,
-        border: `3px dashed ${ring}`, display: "flex", alignItems: "center",
+        width: 54, height: 54, borderRadius: "50%", background: c.fill,
+        border: `3px dashed ${c.ring}`, display: "flex", alignItems: "center",
         justifyContent: "center", boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
       }}>
-        <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, fontSize: 14, color: ring }}>
-          {value}
+        <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, fontSize: value >= 1000 ? 12 : 14, color: c.ring }}>
+          {value.toLocaleString()}
         </div>
       </div>
-      <div style={{ fontSize: 11, opacity: 0.7, textAlign: "center", lineHeight: 1.3 }}
-        dangerouslySetInnerHTML={{ __html: label }}/>
+      <div style={{ fontSize: 11, opacity: 0.7, textAlign: "center", lineHeight: 1.3 }}>
+        × {count}
+      </div>
     </div>
   );
 }
@@ -46,7 +139,7 @@ function KeyStat({ label, big, sub }) {
       borderRadius: 10, padding: "12px 14px", textAlign: "center", flex: 1, minWidth: 0,
     }}>
       <div style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.6 }}>{label}</div>
-      <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, fontSize: 22, color: GOLD, margin: "2px 0" }}>{big}</div>
+      <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 800, fontSize: 20, color: GOLD, margin: "2px 0" }}>{big}</div>
       <div style={{ fontSize: 11, opacity: 0.65 }}>{sub}</div>
     </div>
   );
@@ -83,20 +176,58 @@ function Prose({ children }) {
   return <div style={{ fontSize: 13.5, lineHeight: 1.65, opacity: 0.88, marginBottom: 12 }}>{children}</div>;
 }
 
-const BLIND_LEVELS = [
-  ["1", "5 / 10", "start"],
-  ["2", "10 / 20", "~25 min"],
-  ["3", "25 / 50", "~50 min"],
-  ["4", "50 / 100", "~75 min"],
-  ["5", "100 / 200", "~100 min"],
-];
+function LessonLink({ onClick, children }) {
+  return (
+    <button onClick={onClick}
+      style={{
+        background: "none", border: "none", padding: 0, cursor: "pointer",
+        color: GOLD, fontFamily: "'Inter', sans-serif", fontSize: "inherit",
+        textDecoration: "underline", textUnderlineOffset: 2,
+      }}>
+      {children}
+    </button>
+  );
+}
 
-export default function HomeGameView({ onGoToTrainer }) {
+// Small reusable toggle row.
+function Toggle({ options, value, onChange, render }) {
+  return (
+    <div style={{ display: "flex", gap: 6 }}>
+      {options.map(opt => {
+        const active = opt === value;
+        return (
+          <button key={opt} onClick={() => onChange(opt)}
+            style={{
+              flex: 1, fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600,
+              cursor: "pointer", padding: "10px 4px", borderRadius: 8,
+              border: "1px solid " + (active ? GOLD : "rgba(232,227,211,0.2)"),
+              background: active ? "rgba(212,161,59,0.15)" : "transparent",
+              color: active ? GOLD : "rgba(232,227,211,0.65)",
+              transition: "all 0.15s", lineHeight: 1.25,
+            }}>
+            {render(opt, active)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
   const isMobile = useMediaQuery(768);
   const [step, setStep] = useState(0);
+  const [setSize, setSetSize] = useState(300);
+  const [denom, setDenom] = useState("standard");
+  const [depth, setDepth] = useState(100);
+
+  // Keep depth valid for the chosen denomination set (e.g. "low"/"high" can't
+  // do 150bb). If the current depth isn't supported, fall back to 100, then 50.
+  const preset = DENOM_PRESETS[denom];
+  const supportedDepths = DEPTH_OPTIONS.filter(d => preset.stacks[d]);
+  const activeDepth = preset.stacks[depth] ? depth : (preset.stacks[100] ? 100 : 50);
 
   const steps = [
-    // 1 — buy-in
+    // ── 1. Buy-in & prize pool
     {
       label: "Step 1 of 6",
       render: () => (
@@ -104,9 +235,14 @@ export default function HomeGameView({ onGoToTrainer }) {
           <Tag>The prize pool</Tag>
           <Heading>Everyone buys in equally</Heading>
           <Prose>
-            In a tournament, everyone pays the <b>same amount</b> and gets the <b>same chips</b>. The
-            cash goes into one pot; the chips are just for keeping score — they aren't worth real money
-            during play.
+            A tournament works like this: everyone pays the <b>same buy-in</b> to join, and that cash forms
+            a single prize pool. In return, each player gets the <b>same pile of chips</b> to play with.
+          </Prose>
+          <Prose>
+            The key thing to understand up front — and the part beginners always trip on — is that{" "}
+            <b>the chips are just a scoreboard.</b> They are not money. A player with lots of chips isn't
+            "winning money" yet; they just have a bigger score. The real cash only changes hands at the very
+            end, when the prize pool is paid out.
           </Prose>
           <div style={{ display: "flex", gap: 10, margin: "14px 0" }}>
             <KeyStat label="Buy-in each" big="$20" sub="4–6 players"/>
@@ -114,111 +250,189 @@ export default function HomeGameView({ onGoToTrainer }) {
           </div>
           <Panel>
             <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-              <b style={{ color: GOLD }}>Why equal?</b> A tournament ends with one winner taking the pot.
-              That only feels fair if everyone risked the same to get in. Unequal buy-ins are a cash-game
-              idea — a different format.
+              <b style={{ color: GOLD }}>Why equal buy-ins?</b> A tournament ends with one winner taking
+              the pot, so it only feels fair if everyone risked the same to get in. (A game where chips
+              equal real cash and people come and go is a "cash game" — a different format we're not using
+              here.)
             </div>
           </Panel>
         </>
       ),
     },
-    // 2 — stack
+
+    // ── 2. Which chip set
     {
       label: "Step 2 of 6",
-      render: () => (
-        <>
-          <Tag>Starting chips</Tag>
-          <Heading>Give everyone the same stack</Heading>
-          <Prose>
-            Hand each player an identical pile. The exact number is arbitrary — what matters is that it
-            equals <b>100 big blinds</b>, the standard comfortable starting stack. A clean choice:{" "}
-            <b>1,000 in chips</b> per person.
-          </Prose>
-          <div style={{ display: "flex", gap: 10, margin: "14px 0" }}>
-            <KeyStat label="Per player" big="1,000" sub="in tournament chips"/>
-            <KeyStat label="That equals" big="100 BB" sub="with 5/10 blinds"/>
-          </div>
-          <Panel>
-            <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-              100bb is the sweet spot beginners train on — deep enough to play real poker, shallow enough
-              that hands resolve. It's the same depth the Shove·Lab trainer assumes.
+      render: () => {
+        const set = SET_PRESETS[setSize];
+        return (
+          <>
+            <Tag>Your chip set</Tag>
+            <Heading>Which set do you have?</Heading>
+            <Prose>
+              Start with the box you own — it's the first practical thing that shapes the night, because it
+              decides how big a table you can seat.
+            </Prose>
+            <div style={{ margin: "12px 0 10px" }}>
+              <Toggle options={SET_OPTIONS} value={setSize} onChange={v => { setSetSize(v); track("homegame-set", { set: v }); }}
+                render={opt => SET_PRESETS[opt].label}/>
             </div>
-          </Panel>
-        </>
-      ),
+            <Panel>
+              <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.88 }}>
+                <b style={{ color: GOLD }}>{set.players}.</b> {set.diff}
+              </div>
+            </Panel>
+            <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.55, marginTop: 12 }}>
+              <b>The difference:</b> the two boxes hold the same kinds of chips — the 500 set just has more of
+              each colour. If you're 4–6 friends, a 300 set is all you need; a 500 set is the upgrade for a
+              bigger table or lots of rebuys.
+            </div>
+          </>
+        );
+      },
     },
-    // 3 — denominations
+
+    // ── 3. Chips (denomination set + depth)
     {
       label: "Step 3 of 6",
-      render: () => (
-        <>
-          <Tag>Chip denominations</Tag>
-          <Heading>Assign your chip values</Heading>
-          <Prose>
-            Using a standard 4-color set, here's a scheme that totals about 1,000 with enough small chips
-            to make change early:
-          </Prose>
-          <div style={{ display: "flex", gap: 14, justifyContent: "space-between", margin: "16px 0", flexWrap: "wrap" }}>
-            <Chip fill="#f5f3ec" ring="#888780" label="White<br>× 4" value="5"/>
-            <Chip fill="#c43c3c" ring="#fff" label="Red<br>× 6" value="25"/>
-            <Chip fill="#2f6fb0" ring="#fff" label="Blue<br>× 5" value="100"/>
-            <Chip fill="#2f8a4a" ring="#fff" label="Green<br>× 1" value="500"/>
-          </div>
-          <Panel>
-            <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-              <b style={{ color: GOLD }}>The math:</b> (4×5) + (6×25) + (5×100) + (1×500) = <b>1,020</b> —
-              close enough; round to taste. Just make sure every player gets the <i>identical</i> count.
+      render: () => {
+        const p = DENOM_PRESETS[denom];
+        const stack = p.stacks[activeDepth];
+        const mathStr = p.denoms
+          .map((v, i) => stack.counts[i] > 0 ? `(${stack.counts[i]}×${v.toLocaleString()})` : null)
+          .filter(Boolean).join(" + ");
+        return (
+          <>
+            <Tag>Chips &amp; stack</Tag>
+            <Heading>Set up the chips</Heading>
+            <Prose>
+              Chips are identified by the <b>number printed on them</b>, not their colour (every set's colours
+              differ — go by the value). Pick the four values that match your set, then how long a night you
+              want.
+            </Prose>
+
+            <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, marginBottom: 5 }}>
+              Your chip values
             </div>
-          </Panel>
-        </>
-      ),
+            <Toggle options={DENOM_OPTIONS} value={denom}
+              onChange={v => { setDenom(v); track("homegame-denom", { denom: v }); }}
+              render={(opt) => (
+                <span style={{ fontSize: 11.5 }}>{DENOM_PRESETS[opt].label}</span>
+              )}/>
+            <div style={{ fontSize: 11, opacity: 0.6, marginTop: 5, marginBottom: 14, lineHeight: 1.45 }}>
+              {p.blurb}
+            </div>
+
+            <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, marginBottom: 5 }}>
+              How long a night?
+            </div>
+            <Toggle options={supportedDepths} value={activeDepth}
+              onChange={v => { setDepth(v); track("homegame-depth", { depth: v }); }}
+              render={(opt) => (
+                <>
+                  {DEPTHS[opt].label}<br/>
+                  <span style={{ fontSize: 10, opacity: 0.8, fontWeight: 400 }}>{DEPTHS[opt].descriptor}</span>
+                </>
+              )}/>
+            {supportedDepths.length < 3 && (
+              <div style={{ fontSize: 11, opacity: 0.5, marginTop: 5 }}>
+                A deep (150 BB) game needs a higher top chip — switch to the 25 / 100 / 500 / 1000 set for that.
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10, margin: "14px 0" }}>
+              <KeyStat label="Stack" big={stack.total.toLocaleString()} sub="chips each"/>
+              <KeyStat label="Runs" big={DEPTHS[activeDepth].duration} sub="5–6 players"/>
+            </div>
+
+            <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, textAlign: "center", marginBottom: 4 }}>
+              Each player gets
+            </div>
+            <div style={{ display: "flex", gap: 14, justifyContent: "center", margin: "8px 0 14px", flexWrap: "wrap" }}>
+              {p.denoms.map((v, i) => stack.counts[i] > 0 && (
+                <Chip key={v} value={v} count={stack.counts[i]}/>
+              ))}
+            </div>
+            <Panel>
+              <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
+                <b style={{ color: GOLD }}>The math:</b> {mathStr} = <b>{stack.total.toLocaleString()}</b> per
+                player — the smallest chip equals the small blind, so you can always make change. Every player
+                starts with the <i>identical</i> set. Times are estimates; rebuys and a bigger table run longer.
+              </div>
+            </Panel>
+          </>
+        );
+      },
     },
-    // 4 — blinds + timer
+
+    // ── 4. Blinds & timer
     {
       label: "Step 4 of 6",
-      render: () => (
-        <>
-          <Tag>Blinds &amp; levels</Tag>
-          <Heading>Set the blinds — and a timer</Heading>
-          <Prose>
-            Two players post forced bets each hand: the <b>small blind</b> and <b>big blind</b>. Start them
-            at <b>5 / 10</b> — that makes your 1,000 stack exactly 100 big blinds. Then raise them every{" "}
-            <b>20–30 minutes</b> on a timer.
-          </Prose>
-          <div style={{
-            background: "rgba(232,227,211,0.04)", border: "1px solid rgba(232,227,211,0.12)",
-            borderRadius: 12, overflow: "hidden", margin: "14px 0",
-          }}>
+      render: () => {
+        const p = DENOM_PRESETS[denom];
+        const mult = p.bb / 50;
+        const stack = p.stacks[activeDepth];
+        const levels = BASE_LEVELS.map(([lvl, [sb, bb], after]) =>
+          [lvl, `${(sb * mult).toLocaleString()} / ${(bb * mult).toLocaleString()}`, after]);
+        return (
+          <>
+            <Tag>Blinds &amp; levels</Tag>
+            <Heading>Set the blinds — and a timer</Heading>
+            <Prose>
+              Before each hand, two players are forced to put chips in to get the betting started — otherwise
+              everyone could just fold forever. The player to the dealer's left posts the <b>small blind</b>;
+              the next player posts the <b>big blind</b> (twice the small). These move one seat left every
+              hand, so the burden shares evenly.
+              {onOpenLesson && (
+                <> Want the full story? The{" "}
+                  <LessonLink onClick={() => onOpenLesson("blinds-and-button")}>Blinds &amp; Button lesson</LessonLink>{" "}
+                  covers it.</>
+              )}
+            </Prose>
+            <Prose>
+              Start them at <b>{p.blinds}</b> — that's what makes your {stack.total.toLocaleString()}-chip
+              stack {DEPTHS[activeDepth].label}. Then raise them every <b>20 minutes</b> on a timer (any phone
+              timer works).
+            </Prose>
             <div style={{
-              display: "flex", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase",
-              opacity: 0.55, padding: "8px 14px", borderBottom: "1px solid rgba(232,227,211,0.1)",
+              background: "rgba(232,227,211,0.04)", border: "1px solid rgba(232,227,211,0.12)",
+              borderRadius: 12, overflow: "hidden", margin: "14px 0",
             }}>
-              <div style={{ flex: 1 }}>Level</div>
-              <div style={{ flex: 1, textAlign: "center" }}>Small / Big</div>
-              <div style={{ flex: 1, textAlign: "right" }}>After</div>
-            </div>
-            {BLIND_LEVELS.map((r, idx) => (
-              <div key={r[0]} style={{
-                display: "flex", fontSize: 13, padding: "7px 14px",
-                borderBottom: idx < 4 ? "1px solid rgba(232,227,211,0.07)" : "none",
-                background: idx === 0 ? "rgba(212,161,59,0.08)" : "transparent",
+              <div style={{
+                display: "flex", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase",
+                opacity: 0.55, padding: "8px 14px", borderBottom: "1px solid rgba(232,227,211,0.1)",
               }}>
-                <div style={{ flex: 1, opacity: 0.7 }}>{r[0]}</div>
-                <div style={{ flex: 1, textAlign: "center", fontFamily: "'Inter', sans-serif", fontWeight: 600, color: idx === 0 ? GOLD : CREAM }}>{r[1]}</div>
-                <div style={{ flex: 1, textAlign: "right", opacity: 0.6, fontSize: 11 }}>{r[2]}</div>
+                <div style={{ flex: 1 }}>Level</div>
+                <div style={{ flex: 1, textAlign: "center" }}>Small / Big</div>
+                <div style={{ flex: 1, textAlign: "right" }}>After</div>
               </div>
-            ))}
-          </div>
-          <Panel>
-            <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-              <b style={{ color: GOLD }}>Why raise them?</b> Growing blinds slowly cost everyone for sitting
-              still, forcing action. That's what brings the night to an end instead of folding forever.
+              {levels.map((r, idx) => (
+                <div key={r[0]} style={{
+                  display: "flex", fontSize: 13, padding: "7px 14px",
+                  borderBottom: idx < 5 ? "1px solid rgba(232,227,211,0.07)" : "none",
+                  background: idx === 0 ? "rgba(212,161,59,0.08)" : "transparent",
+                }}>
+                  <div style={{ flex: 1, opacity: 0.7 }}>{r[0]}</div>
+                  <div style={{ flex: 1, textAlign: "center", fontFamily: "'Inter', sans-serif", fontWeight: 600, color: idx === 0 ? GOLD : CREAM }}>{r[1]}</div>
+                  <div style={{ flex: 1, textAlign: "right", opacity: 0.6, fontSize: 11 }}>{r[2]}</div>
+                </div>
+              ))}
             </div>
-          </Panel>
-        </>
-      ),
+            <Panel>
+              <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
+                <b style={{ color: GOLD }}>Why raise them?</b> Growing blinds slowly cost everyone for sitting
+                still, forcing action — that's what eventually ends the night instead of folding forever.{" "}
+                <b style={{ color: GOLD }}>Want a longer game?</b> Raise less often — every 30 minutes, or
+                stay two timer rounds per level. <b style={{ color: GOLD }}>Shorter?</b> Every 10–15. The
+                timer, not the chip count, controls how long you play.
+              </div>
+            </Panel>
+          </>
+        );
+      },
     },
-    // 5 — rebuys + payout
+
+    // ── 5. Rebuys & payout
     {
       label: "Step 5 of 6",
       render: () => (
@@ -259,7 +473,8 @@ export default function HomeGameView({ onGoToTrainer }) {
         </>
       ),
     },
-    // 6 — deal + bridge to trainer
+
+    // ── 6. Deal & play
     {
       label: "Step 6 of 6",
       render: () => (
@@ -267,9 +482,19 @@ export default function HomeGameView({ onGoToTrainer }) {
           <Tag>You're ready</Tag>
           <Heading>Deal — and play your spots</Heading>
           <Prose>
-            That's the whole setup. Lay a tablecloth down for easy chip-sliding, pass the dealer button
-            left each hand, and start at Level 1. Now it comes down to the only thing that actually wins
-            chips: <b>good decisions</b>.
+            That's the whole setup. A few table notes: one person shuffles and deals each hand (or take
+            turns), and a marker called the <b>dealer button</b> sits in front of whoever is "the dealer"
+            for that hand — it moves one seat left each hand so everyone takes turns posting the blinds.
+            {onOpenLesson && (
+              <> New to how that rotation works? The{" "}
+                <LessonLink onClick={() => onOpenLesson("blinds-and-button")}>Blinds &amp; Button lesson</LessonLink>{" "}
+                walks through it.</>
+            )}
+          </Prose>
+          <Prose>
+            Lay a tablecloth or blanket down for easy chip-sliding, deal the first hand at Level 1, and
+            you're playing. From here it comes down to the only thing that actually wins chips:{" "}
+            <b>good decisions</b>.
           </Prose>
           <div style={{ textAlign: "center", margin: "18px 0" }}>
             <div style={{ display: "inline-flex", gap: 7 }}>
@@ -321,7 +546,7 @@ export default function HomeGameView({ onGoToTrainer }) {
           Run a Single<span style={{ color: GOLD }}>·</span>Table Tournament
         </div>
         <div style={{ fontSize: 12, opacity: 0.6, marginTop: 3 }}>
-          Six steps, start to finish — for 4 to 6 friends
+          Six steps, start to finish
         </div>
       </div>
 
@@ -336,7 +561,7 @@ export default function HomeGameView({ onGoToTrainer }) {
         ))}
       </div>
 
-      <div style={{ minHeight: isMobile ? "auto" : 330 }}>
+      <div style={{ minHeight: isMobile ? "auto" : 360 }}>
         {steps[step].render()}
       </div>
 

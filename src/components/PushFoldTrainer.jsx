@@ -263,6 +263,7 @@ export default function PushFoldTrainer() {
   // Drill state (separate history from trainer hands)
   const [drillHistory, setDrillHistory] = useLocalStorage("drillHistory", []);
   const [drillDeepLink, setDrillDeepLink] = useState(null);
+  const [basicsDeepLink, setBasicsDeepLink] = useState(null);
   const [rangePopoverOpen, setRangePopoverOpen] = useState(false);
   const isMobile = useMediaQuery(768);
 
@@ -276,6 +277,14 @@ export default function PushFoldTrainer() {
   function jumpToDrill(drillId) {
     setDrillDeepLink(drillId);
     setView("drills");
+  }
+
+  // Open a specific Basics lesson from elsewhere in the app (e.g. the Home
+  // Game tab linking to "The Blinds and the Button").
+  function openBasicsLesson(lessonId) {
+    setBasicsDeepLink(lessonId);
+    setView("basics");
+    track("tab-view", { tab: "basics" });
   }
 
   const code = useMemo(() => handCode(hand[0], hand[1]), [hand]);
@@ -525,7 +534,7 @@ export default function PushFoldTrainer() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         gap: 16, flexWrap: "wrap",
       }}>
-        <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); track("tab-view", { tab: v }); }}/>
+        <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); if (v !== "basics") setBasicsDeepLink(null); track("tab-view", { tab: v }); }}/>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <LangSwitcher lang={lang} onChange={setLang}/>
           <SupportLink onClick={() => { setDonateOpen(true); track("donate-opened"); }}/>
@@ -1019,11 +1028,14 @@ export default function PushFoldTrainer() {
         )}
 
         {view === "basics" && (
-          <LearnView lessons={basicsLessons} listLabel={t("learn.basicsList")}/>
+          <LearnView lessons={basicsLessons} listLabel={t("learn.basicsList")} initialLessonId={basicsDeepLink}/>
         )}
 
         {view === "homegame" && (
-          <HomeGameView onGoToTrainer={() => { setView("trainer"); track("tab-view", { tab: "trainer" }); }}/>
+          <HomeGameView
+            onGoToTrainer={() => { setView("trainer"); track("tab-view", { tab: "trainer" }); }}
+            onOpenLesson={openBasicsLesson}
+          />
         )}
 
         {view === "hands" && (
