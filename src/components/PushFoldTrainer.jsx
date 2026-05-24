@@ -1077,6 +1077,22 @@ export default function PushFoldTrainer() {
         Shove·Lab · Nash data approximated · ICM via Malmuth-Harville (custom) or stage multipliers (presets)
         <br/>
         Privacy-friendly analytics · no cookies · no personal data
+        <br/>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            track("contact-email");
+            // Assemble the address from parts at click-time so the literal
+            // string never appears in the page source for spam scrapers.
+            const user = ["shove", "lab"].join("");
+            const domain = ["gmail", "com"].join(".");
+            window.location.href = "mai" + "lto:" + user + "@" + domain;
+          }}
+          style={{ color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(232,227,211,0.3)", cursor: "pointer" }}
+        >
+          Contact
+        </a>
       </footer>
 
       <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)}/>
