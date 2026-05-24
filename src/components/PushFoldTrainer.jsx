@@ -238,6 +238,11 @@ export default function PushFoldTrainer() {
   const [lockedPosition, setLockedPosition] = useState(null);
   const [explanationsOn, setExplanationsOn] = useLocalStorage("coaching", true);
   const [donateOpen, setDonateOpen] = useState(false);
+  const [contactCopied, setContactCopied] = useState(false);
+  // Built at runtime from parts so the literal address isn't in the static
+  // source for spam scrapers, while still being a real mailto href the browser
+  // can open natively (more reliable than forcing window.location).
+  const contactEmail = useMemo(() => ["shove", "lab"].join("") + "@" + ["gmail", "com"].join("."), []);
   const { t } = useT();
   const { lang, setLang } = useLanguage();
   const basicsLessons = useMemo(() => getBasicsLessons(lang), [lang]);
@@ -1079,19 +1084,20 @@ export default function PushFoldTrainer() {
         Privacy-friendly analytics · no cookies · no personal data
         <br/>
         <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
+          href={"mailto:" + contactEmail}
+          onClick={() => {
             track("contact-email");
-            // Assemble the address from parts at click-time so the literal
-            // string never appears in the page source for spam scrapers.
-            const user = ["shove", "lab"].join("");
-            const domain = ["gmail", "com"].join(".");
-            window.location.href = "mai" + "lto:" + user + "@" + domain;
+            // Also copy to clipboard as a fallback for anyone without a mail
+            // client set up, so the click always does something useful.
+            try {
+              navigator.clipboard?.writeText(contactEmail);
+              setContactCopied(true);
+              setTimeout(() => setContactCopied(false), 2500);
+            } catch {}
           }}
           style={{ color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(232,227,211,0.3)", cursor: "pointer" }}
         >
-          Contact
+          {contactCopied ? "Email copied — " + contactEmail : "Contact"}
         </a>
       </footer>
 
