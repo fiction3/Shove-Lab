@@ -125,7 +125,7 @@ export const HOME_GAME_CONTENT_SV = {
 
   denoms: {
     standard: "Den vanligaste l\u00e5dan. Funkar f\u00f6r spel av alla l\u00e4ngder.",
-    low: "En sats med l\u00e4gre v\u00e4rden (har en 50-marker). B\u00e4st f\u00f6r kortare spel \u2014 dess toppmarker \u00e4r bara 500.",
+    low: "En sats med l\u00e4gre v\u00e4rden (har en 50-marker). F\u00f6r kortare spel \u2014 dess toppmarker \u00e4r bara 500, s\u00e5 den passar en enda kort stack.",
     high: "En sats med h\u00f6gre v\u00e4rden utan sm\u00e5 marker, s\u00e5 blinds b\u00f6rjar p\u00e5 50 / 100.",
   },
 };

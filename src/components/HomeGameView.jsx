@@ -49,7 +49,7 @@ const DENOM_PRESETS = {
     bb: 50,
     blurb: "The most common box. Works for any length of game.",
     stacks: {
-      50:  { counts: [8, 8, 1, 1], total: 2500 },
+      50:  { counts: [8, 3, 2, 1], total: 2500 },
       100: { counts: [8, 3, 5, 2], total: 5000 },
       150: { counts: [4, 4, 6, 4], total: 7500 },
     },
@@ -59,10 +59,9 @@ const DENOM_PRESETS = {
     denoms: [25, 50, 100, 500],
     blinds: "25 / 50",
     bb: 50,
-    blurb: "A lower-value set (has a 50 chip). Best for shorter games — its top chip is only 500.",
+    blurb: "A lower-value set (has a 50 chip). For shorter games — its top chip is only 500, so it suits a single short stack.",
     stacks: {
-      50:  { counts: [4, 4, 7, 3], total: 2500 },
-      100: { counts: [4, 2, 8, 8], total: 5000 },
+      50:  { counts: [4, 6, 6, 3], total: 2500 },
     },
   },
   high: {
@@ -73,7 +72,7 @@ const DENOM_PRESETS = {
     blurb: "A higher-value set with no small chips, so blinds start at 50 / 100.",
     stacks: {
       50:  { counts: [8, 6, 4, 2], total: 5000 },
-      100: { counts: [4, 8, 8, 5], total: 10000 },
+      100: { counts: [8, 6, 6, 6], total: 10000 },
     },
   },
 };

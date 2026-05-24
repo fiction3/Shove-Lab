@@ -135,7 +135,7 @@ export const HOME_GAME_CONTENT_EN = {
   // Denomination preset blurbs
   denoms: {
     standard: "The most common box. Works for any length of game.",
-    low: "A lower-value set (has a 50 chip). Best for shorter games \u2014 its top chip is only 500.",
+    low: "A lower-value set (has a 50 chip). For shorter games \u2014 its top chip is only 500, so it suits a single short stack.",
     high: "A higher-value set with no small chips, so blinds start at 50 / 100.",
   },
 };
