@@ -128,6 +128,7 @@ function ViewTabs({ view, onChange }) {
   const isMobile = useMediaQuery(768);
   const scrollRef = useRef(null);
   const activeRef = useRef(null);
+  const [atEnd, setAtEnd] = useState(false);
 
   const tabs = [
     { value: "basics", label: t("tab.basics") },
@@ -141,6 +142,14 @@ function ViewTabs({ view, onChange }) {
     { value: "homegame", label: t("tab.homegame"), short: t("tab.short.homegame") },
   ];
 
+  // Track whether the row is scrolled to the far right, so we can hide the
+  // "more →" fade once there's nothing left to reveal.
+  const updateAtEnd = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+  };
+
   // On mobile, keep the active tab scrolled into view when it changes.
   useEffect(() => {
     if (isMobile && activeRef.current) {
@@ -148,8 +157,22 @@ function ViewTabs({ view, onChange }) {
     }
   }, [view, isMobile]);
 
+  // One-time "this scrolls" nudge: on first mount on mobile, gently slide the
+  // row right and back so the motion signals it's swipeable. Only when the
+  // content actually overflows.
+  useEffect(() => {
+    if (!isMobile) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    updateAtEnd();
+    if (el.scrollWidth <= el.clientWidth + 8) return; // nothing to scroll
+    const t1 = setTimeout(() => { el.scrollTo({ left: 48, behavior: "smooth" }); }, 600);
+    const t2 = setTimeout(() => { el.scrollTo({ left: 0, behavior: "smooth" }); }, 1150);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [isMobile]);
+
   const row = (
-    <div ref={scrollRef} className="no-scrollbar" style={{
+    <div ref={scrollRef} className="no-scrollbar" onScroll={updateAtEnd} style={{
       display: "flex", gap: 4,
       flexWrap: isMobile ? "nowrap" : "wrap",
       overflowX: isMobile ? "auto" : "visible",
@@ -166,7 +189,7 @@ function ViewTabs({ view, onChange }) {
               color: active ? "#d4a13b" : "rgba(232,227,211,0.6)",
               border: "none",
               borderBottom: "2px solid " + (active ? "#d4a13b" : "transparent"),
-              padding: isMobile ? "10px 12px" : "10px 16px", cursor: "pointer",
+              padding: isMobile ? "10px 14px" : "10px 16px", cursor: "pointer",
               fontSize: 12, letterSpacing: "0.16em",
               textTransform: "uppercase", fontWeight: 600,
               whiteSpace: "nowrap", flex: "0 0 auto",
@@ -178,17 +201,21 @@ function ViewTabs({ view, onChange }) {
     </div>
   );
 
-  // Desktop: just the wrapping row. Mobile: wrap in a relative container with a
-  // right-edge fade hinting there's more to scroll.
+  // Desktop: plain wrapping row. Mobile: full-width scroll row with a
+  // right-edge fade + chevron cue that disappears once scrolled to the end.
   if (!isMobile) return row;
   return (
-    <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+    <div style={{ position: "relative", width: "100%" }}>
       {row}
       <div aria-hidden="true" style={{
-        position: "absolute", top: 0, right: 0, bottom: 0, width: 28,
+        position: "absolute", top: 0, right: 0, bottom: 0, width: 44,
         pointerEvents: "none",
-        background: "linear-gradient(to right, rgba(10,24,22,0), #0a1816)",
-      }}/>
+        display: "flex", alignItems: "center", justifyContent: "flex-end",
+        paddingRight: 4,
+        background: "linear-gradient(to right, rgba(10,24,22,0), #0a1816 70%)",
+        opacity: atEnd ? 0 : 1, transition: "opacity 0.25s",
+        color: "#d4a13b", fontSize: 16, fontWeight: 700,
+      }}>›</div>
     </div>
   );
 }
@@ -571,11 +598,14 @@ export default function PushFoldTrainer() {
         maxWidth: 1200, margin: "0 auto",
         borderBottom: "1px solid rgba(232,227,211,0.15)",
         marginBottom: 24,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        gap: 16, flexWrap: "wrap",
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        alignItems: isMobile ? "stretch" : "center",
+        justifyContent: "space-between",
+        gap: isMobile ? 10 : 16, flexWrap: "wrap",
       }}>
         <ViewTabs view={view} onChange={v => { setView(v); if (v !== "drills") setDrillDeepLink(null); if (v !== "basics") setBasicsDeepLink(null); track("tab-view", { tab: v }); }}/>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: isMobile ? 8 : 0 }}>
           <LangSwitcher lang={lang} onChange={setLang}/>
           <SupportLink onClick={() => { setDonateOpen(true); track("donate-opened"); }}/>
         </div>
