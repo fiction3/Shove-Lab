@@ -28,6 +28,7 @@ import RangeViewer from "./RangeViewer.jsx";
 import SessionReview from "./SessionReview.jsx";
 import ICMSetup from "./ICMSetup.jsx";
 import LearnView from "./LearnView.jsx";
+import HomeGameView from "./HomeGameView.jsx";
 import { BASICS_LESSONS } from "../data/basicsLessons.js";
 import DrillsView from "./DrillsView.jsx";
 import RangePopover from "./RangePopover.jsx";
@@ -135,6 +136,7 @@ function ViewTabs({ view, onChange }) {
         { value: "review", label: t("tab.review") },
         { value: "ranges", label: t("tab.ranges") },
         { value: "icm", label: t("tab.icm") },
+        { value: "homegame", label: t("tab.homegame") },
       ].map(tab => {
         const active = view === tab.value;
         return (
@@ -1018,6 +1020,10 @@ export default function PushFoldTrainer() {
 
         {view === "basics" && (
           <LearnView lessons={basicsLessons} listLabel={t("learn.basicsList")}/>
+        )}
+
+        {view === "homegame" && (
+          <HomeGameView onGoToTrainer={() => { setView("trainer"); track("tab-view", { tab: "trainer" }); }}/>
         )}
 
         {view === "hands" && (

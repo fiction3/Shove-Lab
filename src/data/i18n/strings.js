@@ -12,6 +12,7 @@ export const STRINGS = {
 
     // Tab labels (these ARE translated; poker mode names below are not)
     "tab.basics": "Basics",
+    "tab.homegame": "Home Game",
     "tab.hands": "Hands",
     "tab.learn": "Learn",
     "tab.drills": "Drills",
@@ -125,6 +126,7 @@ export const STRINGS = {
 
     // Tab labels
     "tab.basics": "Grunderna",
+    "tab.homegame": "Hemmaspel",
     "tab.hands": "Händer",
     "tab.learn": "Lär dig",
     "tab.drills": "Övningar",
