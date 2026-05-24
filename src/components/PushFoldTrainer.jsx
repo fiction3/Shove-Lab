@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 
 import { TABLE_CONFIGS, POSITION_LABELS } from "../data/tableConfigs.js";
 import { ICM_STAGES } from "../data/icmStages.js";
@@ -125,35 +125,70 @@ function ModeTabs({ mode, onChange }) {
 
 function ViewTabs({ view, onChange }) {
   const { t } = useT();
-  return (
-    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-      {[
-        { value: "basics", label: t("tab.basics") },
-        { value: "hands", label: t("tab.hands") },
-        { value: "learn", label: t("tab.learn") },
-        { value: "drills", label: t("tab.drills") },
-        { value: "trainer", label: t("tab.trainer") },
-        { value: "review", label: t("tab.review") },
-        { value: "ranges", label: t("tab.ranges") },
-        { value: "icm", label: t("tab.icm") },
-        { value: "homegame", label: t("tab.homegame") },
-      ].map(tab => {
+  const isMobile = useMediaQuery(768);
+  const scrollRef = useRef(null);
+  const activeRef = useRef(null);
+
+  const tabs = [
+    { value: "basics", label: t("tab.basics") },
+    { value: "hands", label: t("tab.hands") },
+    { value: "learn", label: t("tab.learn") },
+    { value: "drills", label: t("tab.drills") },
+    { value: "trainer", label: t("tab.trainer") },
+    { value: "review", label: t("tab.review"), short: t("tab.short.review") },
+    { value: "ranges", label: t("tab.ranges"), short: t("tab.short.ranges") },
+    { value: "icm", label: t("tab.icm"), short: t("tab.short.icm") },
+    { value: "homegame", label: t("tab.homegame"), short: t("tab.short.homegame") },
+  ];
+
+  // On mobile, keep the active tab scrolled into view when it changes.
+  useEffect(() => {
+    if (isMobile && activeRef.current) {
+      activeRef.current.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  }, [view, isMobile]);
+
+  const row = (
+    <div ref={scrollRef} className="no-scrollbar" style={{
+      display: "flex", gap: 4,
+      flexWrap: isMobile ? "nowrap" : "wrap",
+      overflowX: isMobile ? "auto" : "visible",
+      WebkitOverflowScrolling: "touch",
+      scrollbarWidth: "none",          // Firefox: hide scrollbar
+      msOverflowStyle: "none",
+    }}>
+      {tabs.map(tab => {
         const active = view === tab.value;
         return (
-          <button key={tab.value} onClick={() => onChange(tab.value)}
+          <button key={tab.value} ref={active ? activeRef : null} onClick={() => onChange(tab.value)}
             style={{
               background: active ? "rgba(212,161,59,0.15)" : "transparent",
               color: active ? "#d4a13b" : "rgba(232,227,211,0.6)",
               border: "none",
               borderBottom: "2px solid " + (active ? "#d4a13b" : "transparent"),
-              padding: "10px 16px", cursor: "pointer",
-              fontSize: 12, letterSpacing: "0.18em",
+              padding: isMobile ? "10px 12px" : "10px 16px", cursor: "pointer",
+              fontSize: 12, letterSpacing: "0.16em",
               textTransform: "uppercase", fontWeight: 600,
+              whiteSpace: "nowrap", flex: "0 0 auto",
             }}>
-            {tab.label}
+            {isMobile && tab.short ? tab.short : tab.label}
           </button>
         );
       })}
+    </div>
+  );
+
+  // Desktop: just the wrapping row. Mobile: wrap in a relative container with a
+  // right-edge fade hinting there's more to scroll.
+  if (!isMobile) return row;
+  return (
+    <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+      {row}
+      <div aria-hidden="true" style={{
+        position: "absolute", top: 0, right: 0, bottom: 0, width: 28,
+        pointerEvents: "none",
+        background: "linear-gradient(to right, rgba(10,24,22,0), #0a1816)",
+      }}/>
     </div>
   );
 }

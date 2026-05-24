@@ -20,6 +20,10 @@ export const STRINGS = {
     "tab.review": "Session Review",
     "tab.ranges": "Range Viewer",
     "tab.icm": "ICM Setup",
+    "tab.short.review": "Review",
+    "tab.short.ranges": "Ranges",
+    "tab.short.icm": "ICM",
+    "tab.short.homegame": "Home Game",
 
     // Learn / Basics shared chrome
     "learn.lessons": "Lessons",
@@ -134,6 +138,10 @@ export const STRINGS = {
     "tab.review": "Sessionsöversikt",
     "tab.ranges": "Range-visare",
     "tab.icm": "ICM-inställning",
+    "tab.short.review": "Översikt",
+    "tab.short.ranges": "Ranges",
+    "tab.short.icm": "ICM",
+    "tab.short.homegame": "Hemmaspel",
 
     // Learn / Basics shared chrome
     "learn.lessons": "Lektioner",

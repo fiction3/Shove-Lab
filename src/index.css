@@ -21,3 +21,10 @@ button {
 input {
   font-family: inherit;
 }
+
+/* Hide the horizontal scrollbar on the mobile tab strip while keeping it
+   scrollable. Firefox/old-Edge are handled via inline styles; WebKit
+   (Safari/Chrome, incl. iOS) needs this rule. */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
