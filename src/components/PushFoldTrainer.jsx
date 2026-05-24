@@ -516,7 +516,7 @@ export default function PushFoldTrainer() {
         )}
       </header>
 
-      <div style={{
+      <nav aria-label="Main sections" style={{
         maxWidth: 1200, margin: "0 auto",
         borderBottom: "1px solid rgba(232,227,211,0.15)",
         marginBottom: 24,
@@ -528,9 +528,9 @@ export default function PushFoldTrainer() {
           <LangSwitcher lang={lang} onChange={setLang}/>
           <SupportLink onClick={() => { setDonateOpen(true); track("donate-opened"); }}/>
         </div>
-      </div>
+      </nav>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <main style={{ maxWidth: 1200, margin: "0 auto" }}>
         {view === "trainer" && (
           <div style={{
             display: "grid",
@@ -1049,7 +1049,7 @@ export default function PushFoldTrainer() {
             <ICMSetup icmState={icmState} setICMState={setICMState} computedMults={customMults}/>
           </div>
         )}
-      </div>
+      </main>
 
       <footer style={{
         maxWidth: 1200, margin: "32px auto 0 auto",
