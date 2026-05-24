@@ -77,7 +77,7 @@ const DENOM_PRESETS = {
     },
   },
 };
-const DENOM_OPTIONS = ["standard", "low", "high"];
+const DENOM_OPTIONS = ["low", "standard", "high"];
 
 // ── Depth options (in big blinds). Descriptor + rough duration for a 5–6
 // player game on 20-minute levels. Durations are estimates, stated as such.
