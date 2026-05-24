@@ -2,6 +2,8 @@ import { useState } from "react";
 import TritonCard from "./TritonCard.jsx";
 import useMediaQuery from "../lib/useMediaQuery.js";
 import { track } from "../lib/analytics.js";
+import { useT } from "../lib/i18n.jsx";
+import { getHomeGameContent } from "../data/i18n/getHomeGameContent.js";
 
 /**
  * Home Game tab — an interactive, click-through walkthrough that takes a
@@ -214,6 +216,8 @@ function Toggle({ options, value, onChange, render }) {
 }
 
 export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
+  const { lang } = useT();
+  const c = getHomeGameContent(lang);
   const isMobile = useMediaQuery(768);
   const [step, setStep] = useState(0);
   const [setSize, setSetSize] = useState(300);
@@ -232,28 +236,17 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
       label: "Step 1 of 6",
       render: () => (
         <>
-          <Tag>The prize pool</Tag>
-          <Heading>Everyone buys in equally</Heading>
-          <Prose>
-            A tournament works like this: everyone pays the <b>same buy-in</b> to join, and that cash forms
-            a single prize pool. In return, each player gets the <b>same pile of chips</b> to play with.
-          </Prose>
-          <Prose>
-            The key thing to understand up front — and the part beginners always trip on — is that{" "}
-            <b>the chips are just a scoreboard.</b> They are not money. A player with lots of chips isn't
-            "winning money" yet; they just have a bigger score. The real cash only changes hands at the very
-            end, when the prize pool is paid out.
-          </Prose>
+          <Tag>{c.s1.tag}</Tag>
+          <Heading>{c.s1.heading}</Heading>
+          <Prose>{c.s1.p1}</Prose>
+          <Prose>{c.s1.p2}</Prose>
           <div style={{ display: "flex", gap: 10, margin: "14px 0" }}>
-            <KeyStat label="Buy-in each" big="$20" sub="4–6 players"/>
-            <KeyStat label="Prize pool" big="$80–$120" sub="paid out at the end"/>
+            <KeyStat label={c.s1.statBuyinLabel} big="$20" sub={c.s1.statBuyinSub}/>
+            <KeyStat label={c.s1.statPoolLabel} big="$80–$120" sub={c.s1.statPoolSub}/>
           </div>
           <Panel>
             <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-              <b style={{ color: GOLD }}>Why equal buy-ins?</b> A tournament ends with one winner taking
-              the pot, so it only feels fair if everyone risked the same to get in. (A game where chips
-              equal real cash and people come and go is a "cash game" — a different format we're not using
-              here.)
+              <b style={{ color: GOLD }}>{c.s1.panelLead}</b>{c.s1.panel}
             </div>
           </Panel>
         </>
@@ -264,28 +257,23 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
     {
       label: "Step 2 of 6",
       render: () => {
-        const set = SET_PRESETS[setSize];
+        const setC = c.sets[setSize];
         return (
           <>
-            <Tag>Your chip set</Tag>
-            <Heading>Which set do you have?</Heading>
-            <Prose>
-              Start with the box you own — it's the first practical thing that shapes the night, because it
-              decides how big a table you can seat.
-            </Prose>
+            <Tag>{c.s2.tag}</Tag>
+            <Heading>{c.s2.heading}</Heading>
+            <Prose>{c.s2.p1}</Prose>
             <div style={{ margin: "12px 0 10px" }}>
               <Toggle options={SET_OPTIONS} value={setSize} onChange={v => { setSetSize(v); track("homegame-set", { set: v }); }}
                 render={opt => SET_PRESETS[opt].label}/>
             </div>
             <Panel>
               <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.88 }}>
-                <b style={{ color: GOLD }}>{set.players}.</b> {set.diff}
+                <b style={{ color: GOLD }}>{setC.players}.</b> {setC.diff}
               </div>
             </Panel>
             <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.55, marginTop: 12 }}>
-              <b>The difference:</b> the two boxes hold the same kinds of chips — the 500 set just has more of
-              each colour. If you're 4–6 friends, a 300 set is all you need; a 500 set is the upgrade for a
-              bigger table or lots of rebuys.
+              <b>{c.s2.diffLead}</b>{c.s2.diff}
             </div>
           </>
         );
@@ -303,16 +291,14 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
           .filter(Boolean).join(" + ");
         return (
           <>
-            <Tag>Chips &amp; stack</Tag>
-            <Heading>Set up the chips</Heading>
+            <Tag>{c.s3.tag}</Tag>
+            <Heading>{c.s3.heading}</Heading>
             <Prose>
-              Chips are identified by the <b>number printed on them</b>, not their colour (every set's colours
-              differ — go by the value). Pick the four values that match your set, then how long a night you
-              want.
+              <b>{c.s3.p1Lead}</b>{c.s3.p1}
             </Prose>
 
             <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, marginBottom: 5 }}>
-              Your chip values
+              {c.s3.valuesLabel}
             </div>
             <Toggle options={DENOM_OPTIONS} value={denom}
               onChange={v => { setDenom(v); track("homegame-denom", { denom: v }); }}
@@ -320,33 +306,33 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
                 <span style={{ fontSize: 11.5 }}>{DENOM_PRESETS[opt].label}</span>
               )}/>
             <div style={{ fontSize: 11, opacity: 0.6, marginTop: 5, marginBottom: 14, lineHeight: 1.45 }}>
-              {p.blurb}
+              {c.denoms[denom]}
             </div>
 
             <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, marginBottom: 5 }}>
-              How long a night?
+              {c.s3.lengthLabel}
             </div>
             <Toggle options={supportedDepths} value={activeDepth}
               onChange={v => { setDepth(v); track("homegame-depth", { depth: v }); }}
               render={(opt) => (
                 <>
                   {DEPTHS[opt].label}<br/>
-                  <span style={{ fontSize: 10, opacity: 0.8, fontWeight: 400 }}>{DEPTHS[opt].descriptor}</span>
+                  <span style={{ fontSize: 10, opacity: 0.8, fontWeight: 400 }}>{c.depths[opt].descriptor}</span>
                 </>
               )}/>
             {supportedDepths.length < 3 && (
               <div style={{ fontSize: 11, opacity: 0.5, marginTop: 5 }}>
-                A deep (150 BB) game needs a higher top chip — switch to the 25 / 100 / 500 / 1000 set for that.
+                {c.s3.deepNote}
               </div>
             )}
 
             <div style={{ display: "flex", gap: 10, margin: "14px 0" }}>
-              <KeyStat label="Stack" big={stack.total.toLocaleString()} sub="chips each"/>
-              <KeyStat label="Runs" big={DEPTHS[activeDepth].duration} sub="5–6 players"/>
+              <KeyStat label={c.s3.stackLabel} big={stack.total.toLocaleString()} sub={c.s3.stackSub}/>
+              <KeyStat label={c.s3.runsLabel} big={c.depths[activeDepth].duration} sub={c.s3.runsSub}/>
             </div>
 
             <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, textAlign: "center", marginBottom: 4 }}>
-              Each player gets
+              {c.s3.eachLabel}
             </div>
             <div style={{ display: "flex", gap: 14, justifyContent: "center", margin: "8px 0 14px", flexWrap: "wrap" }}>
               {p.denoms.map((v, i) => stack.counts[i] > 0 && (
@@ -355,9 +341,7 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
             </div>
             <Panel>
               <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-                <b style={{ color: GOLD }}>The math:</b> {mathStr} = <b>{stack.total.toLocaleString()}</b> per
-                player — the smallest chip equals the small blind, so you can always make change. Every player
-                starts with the <i>identical</i> set. Times are estimates; rebuys and a bigger table run longer.
+                <b style={{ color: GOLD }}>{c.s3.mathLead}</b> {mathStr} = <b>{stack.total.toLocaleString()}</b> {c.s3.perPlayer} {c.s3.mathTail}
               </div>
             </Panel>
           </>
@@ -372,27 +356,26 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
         const p = DENOM_PRESETS[denom];
         const mult = p.bb / 50;
         const stack = p.stacks[activeDepth];
+        const afterMap = {
+          "start": c.s4.levelStart, "20 min": c.s4.level20, "40 min": c.s4.level40,
+          "1 hr": c.s4.level1hr, "1 hr 20": c.s4.level1hr20, "1 hr 40": c.s4.level1hr40,
+        };
         const levels = BASE_LEVELS.map(([lvl, [sb, bb], after]) =>
-          [lvl, `${(sb * mult).toLocaleString()} / ${(bb * mult).toLocaleString()}`, after]);
+          [lvl, `${(sb * mult).toLocaleString()} / ${(bb * mult).toLocaleString()}`, afterMap[after] || after]);
         return (
           <>
-            <Tag>Blinds &amp; levels</Tag>
-            <Heading>Set the blinds — and a timer</Heading>
+            <Tag>{c.s4.tag}</Tag>
+            <Heading>{c.s4.heading}</Heading>
             <Prose>
-              Before each hand, two players are forced to put chips in to get the betting started — otherwise
-              everyone could just fold forever. The player to the dealer's left posts the <b>small blind</b>;
-              the next player posts the <b>big blind</b> (twice the small). These move one seat left every
-              hand, so the burden shares evenly.
+              {c.s4.p1}
               {onOpenLesson && (
-                <> Want the full story? The{" "}
-                  <LessonLink onClick={() => onOpenLesson("blinds-and-button")}>Blinds &amp; Button lesson</LessonLink>{" "}
-                  covers it.</>
+                <>{c.s4.p1LinkPrefix}
+                  <LessonLink onClick={() => onOpenLesson("blinds-and-button")}>{c.s4.lessonLinkText}</LessonLink>
+                  {c.s4.p1LinkSuffix}</>
               )}
             </Prose>
             <Prose>
-              Start them at <b>{p.blinds}</b> — that's what makes your {stack.total.toLocaleString()}-chip
-              stack {DEPTHS[activeDepth].label}. Then raise them every <b>20 minutes</b> on a timer (any phone
-              timer works).
+              {c.s4.p2a}<b>{p.blinds}</b>{c.s4.p2b}{stack.total.toLocaleString()}{c.s4.p2c}{DEPTHS[activeDepth].label}{c.s4.p2d}<b>{c.s4.p2bold}</b>{c.s4.p2e}
             </Prose>
             <div style={{
               background: "rgba(232,227,211,0.04)", border: "1px solid rgba(232,227,211,0.12)",
@@ -402,9 +385,9 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
                 display: "flex", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase",
                 opacity: 0.55, padding: "8px 14px", borderBottom: "1px solid rgba(232,227,211,0.1)",
               }}>
-                <div style={{ flex: 1 }}>Level</div>
-                <div style={{ flex: 1, textAlign: "center" }}>Small / Big</div>
-                <div style={{ flex: 1, textAlign: "right" }}>After</div>
+                <div style={{ flex: 1 }}>{c.s4.colLevel}</div>
+                <div style={{ flex: 1, textAlign: "center" }}>{c.s4.colBlinds}</div>
+                <div style={{ flex: 1, textAlign: "right" }}>{c.s4.colAfter}</div>
               </div>
               {levels.map((r, idx) => (
                 <div key={r[0]} style={{
@@ -420,11 +403,9 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
             </div>
             <Panel>
               <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-                <b style={{ color: GOLD }}>Why raise them?</b> Growing blinds slowly cost everyone for sitting
-                still, forcing action — that's what eventually ends the night instead of folding forever.{" "}
-                <b style={{ color: GOLD }}>Want a longer game?</b> Raise less often — every 30 minutes, or
-                stay two timer rounds per level. <b style={{ color: GOLD }}>Shorter?</b> Every 10–15. The
-                timer, not the chip count, controls how long you play.
+                <b style={{ color: GOLD }}>{c.s4.panelWhyLead}</b>{c.s4.panelWhy}
+                <b style={{ color: GOLD }}>{c.s4.panelLongerLead}</b>{c.s4.panelLonger}
+                <b style={{ color: GOLD }}>{c.s4.panelShorterLead}</b>{c.s4.panelShorter}
               </div>
             </Panel>
           </>
@@ -437,37 +418,35 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
       label: "Step 5 of 6",
       render: () => (
         <>
-          <Tag>Rules to set first</Tag>
-          <Heading>Decide rebuys &amp; the payout</Heading>
+          <Tag>{c.s5.tag}</Tag>
+          <Heading>{c.s5.heading}</Heading>
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
               <div style={{ fontSize: 18, lineHeight: 1, color: GOLD, marginTop: 2 }}>↺</div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Rebuys for the first hour</div>
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{c.s5.rebuyTitle}</div>
                 <div style={{ fontSize: 12.5, lineHeight: 1.55, opacity: 0.82 }}>
-                  Bust early? Buy back in for another $20, fresh stack. After one hour the game{" "}
-                  <b>locks</b> — win or go home. Keeps everyone in the action while still ending cleanly.
+                  {c.s5.rebuyBody}
                 </div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
               <div style={{ fontSize: 18, lineHeight: 1, color: GOLD, marginTop: 2 }}>⚑</div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Split the prize</div>
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{c.s5.splitTitle}</div>
                 <div style={{ fontSize: 12.5, lineHeight: 1.55, opacity: 0.82 }}>
-                  Simplest is winner-takes-all. For a softer landing, pay the top two.
+                  {c.s5.splitBody}
                 </div>
               </div>
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, margin: "14px 0" }}>
-            <KeyStat label="1st place" big="70%" sub="of the pot"/>
-            <KeyStat label="2nd place" big="30%" sub="of the pot"/>
+            <KeyStat label={c.s5.stat1Label} big="70%" sub={c.s5.stat1Sub}/>
+            <KeyStat label={c.s5.stat2Label} big="30%" sub={c.s5.stat2Sub}/>
           </div>
           <Panel>
             <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.85 }}>
-              Lots of rebuys? Add a third spot — e.g. <b>65 / 25 / 10</b>. The golden rule:{" "}
-              <b style={{ color: GOLD }}>decide this before you start</b>, never at midnight.
+              {c.s5.panel}<b style={{ color: GOLD }}>{c.s5.panelBold}</b>{c.s5.panelTail}
             </div>
           </Panel>
         </>
@@ -479,36 +458,29 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
       label: "Step 6 of 6",
       render: () => (
         <>
-          <Tag>You're ready</Tag>
-          <Heading>Deal — and play your spots</Heading>
+          <Tag>{c.s6.tag}</Tag>
+          <Heading>{c.s6.heading}</Heading>
           <Prose>
-            That's the whole setup. A few table notes: one person shuffles and deals each hand (or take
-            turns), and a marker called the <b>dealer button</b> sits in front of whoever is "the dealer"
-            for that hand — it moves one seat left each hand so everyone takes turns posting the blinds.
+            {c.s6.p1}
             {onOpenLesson && (
-              <> New to how that rotation works? The{" "}
-                <LessonLink onClick={() => onOpenLesson("blinds-and-button")}>Blinds &amp; Button lesson</LessonLink>{" "}
-                walks through it.</>
+              <>{c.s6.p1LinkPrefix}
+                <LessonLink onClick={() => onOpenLesson("blinds-and-button")}>{c.s6.lessonLinkText}</LessonLink>
+                {c.s6.p1LinkSuffix}</>
             )}
           </Prose>
-          <Prose>
-            Lay a tablecloth or blanket down for easy chip-sliding, deal the first hand at Level 1, and
-            you're playing. From here it comes down to the only thing that actually wins chips:{" "}
-            <b>good decisions</b>.
-          </Prose>
+          <Prose>{c.s6.p2}</Prose>
           <div style={{ textAlign: "center", margin: "18px 0" }}>
             <div style={{ display: "inline-flex", gap: 7 }}>
               <TritonCard card="Ah" size={50}/>
               <TritonCard card="Kh" size={50}/>
             </div>
             <div style={{ fontSize: 11, opacity: 0.6, marginTop: 8 }}>
-              Dealt a big hand short-stacked? That's a push/fold spot.
+              {c.s6.cardCaption}
             </div>
           </div>
           <Panel>
             <div style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.9, textAlign: "center" }}>
-              When you've got a game on the calendar, the <b style={{ color: GOLD }}>Trainer</b> is the best
-              place to get sharp before everyone shows up.
+              {c.s6.bridge}
               <div style={{ marginTop: 10 }}>
                 <button
                   onClick={() => { track("homegame-to-trainer"); onGoToTrainer && onGoToTrainer(); }}
@@ -516,7 +488,7 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
                     fontFamily: "'Inter', sans-serif", fontSize: 12.5, fontWeight: 600, color: "#0a1816",
                     background: GOLD, border: "none", borderRadius: 8, padding: "9px 16px", cursor: "pointer",
                   }}>
-                  Practice in the Trainer →
+                  {c.s6.bridgeButton} →
                 </button>
               </div>
             </div>
@@ -537,23 +509,23 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
     <div style={{ maxWidth: 680, margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: 4 }}>
         <div style={{ fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase", opacity: 0.55 }}>
-          Home game setup
+          {c.kicker}
         </div>
         <div style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 23 : 27,
           fontWeight: 600, letterSpacing: "-0.01em", marginTop: 2,
         }}>
-          Run a Single<span style={{ color: GOLD }}>·</span>Table Tournament
+          {c.title}
         </div>
         <div style={{ fontSize: 12, opacity: 0.6, marginTop: 3 }}>
-          Six steps, start to finish
+          {c.subtitle}
         </div>
       </div>
 
       {/* progress bars */}
       <div style={{ display: "flex", gap: 5, justifyContent: "center", margin: "18px 0 16px" }}>
         {steps.map((_, idx) => (
-          <button key={idx} onClick={() => go(idx)} aria-label={`Go to step ${idx + 1}`}
+          <button key={idx} onClick={() => go(idx)} aria-label={`${c.back === "Back" ? "Go to step" : "G\u00e5 till steg"} ${idx + 1}`}
             style={{
               width: 30, height: 4, borderRadius: 2, cursor: "pointer", border: "none", padding: 0,
               background: idx <= step ? GOLD : "rgba(232,227,211,0.18)", transition: "background 0.2s",
@@ -572,17 +544,17 @@ export default function HomeGameView({ onGoToTrainer, onOpenLesson }) {
             border: "1px solid rgba(232,227,211,0.25)", borderRadius: 8, padding: "9px 16px",
             cursor: "pointer", visibility: step === 0 ? "hidden" : "visible",
           }}>
-          ← Back
+          ← {c.back}
         </button>
         <div style={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", opacity: 0.5 }}>
-          {steps[step].label}
+          {c.stepOf(step + 1, steps.length)}
         </div>
         <button onClick={() => (step === last ? go(0) : go(step + 1))}
           style={{
             fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#0a1816",
             background: GOLD, border: "none", borderRadius: 8, padding: "9px 18px", cursor: "pointer",
           }}>
-          {step === last ? "Start over" : "Next →"}
+          {step === last ? c.startOver : c.next + " →"}
         </button>
       </div>
     </div>

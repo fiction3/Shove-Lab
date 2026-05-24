@@ -39,6 +39,17 @@ export default function RangeViewer({ mode, position, stage, customMult, highlig
   const [hovered, setHovered] = useState(null); // { hand, x, y }
   const isMobile = useMediaQuery(768);
 
+  // On mobile the advice tooltip lives in a bottom panel driven by `hovered`.
+  // When opened from the Trainer with a specific hand to highlight, seed that
+  // panel so the hand's advice shows right away — without this the panel stays
+  // empty until the user taps a cell. (Desktop uses a floating hover tooltip,
+  // so we don't pre-open anything there.)
+  useEffect(() => {
+    if (isMobile && highlightHand) {
+      setHovered({ hand: highlightHand, x: 0, y: 0 });
+    }
+  }, [isMobile, highlightHand]);
+
   function getMaxFor(hand) {
     if (mode === "push") return getMaxPushBB(position, hand, stage, customMult);
     if (mode === "call") {
