@@ -72,8 +72,8 @@ const DENOM_PRESETS = {
     bb: 100,
     blurb: "A higher-value set with no small chips, so blinds start at 50 / 100.",
     stacks: {
-      50:  { counts: [8, 6, 0, 4], total: 5000 },
-      100: { counts: [4, 3, 3, 8], total: 10000 },
+      50:  { counts: [8, 6, 4, 2], total: 5000 },
+      100: { counts: [4, 8, 8, 5], total: 10000 },
     },
   },
 };
